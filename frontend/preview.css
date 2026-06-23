@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* ── Page wrapper rendered inside .preview-panel ── */
+#resume-pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+}
+
+/* ── Single A4 page ── */
+.a4-page {
+    width: 210mm;
+    height: 297mm;
+    padding: 15mm 15mm 18mm 15mm; /*Top, right, bottom, left*/
+    background: white;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    font-family: 'Lato', sans-serif; /* REMOVED Calibri to force Lato */
+    font-size: 10.5pt; /* Slightly reduced base font to match reference */
+    color: #000;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Wrapper to measure exact content height vs allowed height */
+.page-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* ── Print ── */
+@media print {
+    @page { size: A4; margin: 0; }
+    html, body { margin: 0 !important; padding: 0 !important; background: white; }
+    
+    .app-layout { 
+        display: block !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+    }
+    
+    .form-panel { display: none !important; }
+    
+    .preview-panel {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        height: auto !important;
+        overflow: visible !important;
+        display: block !important; /* Disable flexbox in parent */
+    }
+    
+    #resume-pages { 
+        display: block !important; /* CRITICAL FIX: Disable flexbox to stop blank pages */
+        gap: 0 !important; 
+        padding: 0 !important; 
+        margin: 0 !important;
+    }
+    
+    .a4-page {
+        width: 210mm;
+        height: 297mm; 
+        padding: 10mm 12mm 25mm 12mm; /* Increased bottom padding to reserve space for footer */
+        background: white;
+        box-shadow: none !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+    }
+    
+    .a4-page:last-child { 
+        page-break-after: auto !important; 
+        break-after: auto !important; 
+    }
+    
+    .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+}
+
+/* ════════════════════════════════════════
+   HEADER
+════════════════════════════════════════ */
+.resume-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1.5px solid #000;
+    gap: 20px;
+}
+
+.school-logo {
+    width: 115px;
+    height: 115px;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.school-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.header-center {
+    flex: 1;
+    padding-left: 25px; /* Restores the correct gap from the logo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.header-name {
+    font-family: 'Lato', sans-serif;
+    font-size: 20pt; /* Restored to the correct, non-overblown size */
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left; /* Enforces strict left alignment with the text below */
+    color: #000;
+}
+
+.header-info {
+    font-size: 10.5pt;
+    line-height: 1.45;
+    margin: 0;
+    color: #000;
+}
+
+.profile-pic-container {
+    width: 110px;
+    height: 130px;
+    border: 1px solid #000;
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+}
+
+.profile-pic-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* ════════════════════════════════════════
+   SECTION TITLES
+════════════════════════════════════════ */
+.section-title {
+    display: flex;
+    align-items: center;
+    font-family: 'Lato', sans-serif;
+    font-weight: 700;
+    font-size: 13pt;
+    margin: 14px 0 8px 0;
+    color: #000;
+    white-space: nowrap;
+}
+
+.section-title::after {
+    content: "";
+    flex-grow: 1;
+    margin-left: 12px;
+    height: 1.5px; /* Defines exact thickness */
+    background-color: #B22222; /* Standardized red */
+    align-self: center; /* Vertically centers the line with the text */
+}
+/* ════════════════════════════════════════
+   TABLES & LISTS
+════════════════════════════════════════ */
+.edu-table { 
+    width: 100%; border-collapse: collapse; margin-bottom: 8px; margin-top:10px; font-size: 10.5pt; 
+}
+.edu-table th, .edu-table td { 
+    border: 1px solid #000; padding: 8px 10px; text-align: center; vertical-align: middle; 
+}
+.edu-table th { 
+    font-weight: 700; background: #fff; 
+}
+
+/* UNIFIED BULLET ALIGNMENT SYSTEM (For Achievements, Interests) */
+.bullet-list { 
+    margin: 4px 0 8px 0; 
+    padding-left: 0; /* Removes browser default list padding */
+    list-style-type: none; /* Disables browser default bullets */
+}
+.bullet-list li { 
+    position: relative;
+    padding-left: 24px; /* Locks text exactly 24px from left margin */
+    margin-bottom: 4px; 
+    text-align: justify; 
+}
+.bullet-list li::before {
+    content: "•";
+    position: absolute;
+    left: 8px; /* Locks bullet exactly 8px from left margin */
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* ════════════════════════════════════════
+   PROJECTS & PORs
+════════════════════════════════════════ */
+.item-block { 
+    margin-bottom: 12px; 
+    padding-left: 24px; /* Matches .bullet-list li exactly */
+    position: relative; 
+}
+.item-bullet {
+    position: absolute;
+    left: 8px; /* Matches .bullet-list li::before exactly */
+    font-weight: bold;
+    font-size: 1.2em;
+    line-height: 1.1;
+}
+.item-header { 
+    display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; 
+}
+.item-title { 
+    font-weight: 700; font-size: 10.5pt; 
+}
+.item-date { 
+    font-style: italic; font-size: 10.5pt; white-space: nowrap; margin-left: 12px; 
+}
+.item-desc { 
+    margin: 2px 0 0 0; line-height: 1.45; font-size: 10.5pt; text-align: justify; 
+}
+
+/* ════════════════════════════════════════
+   SKILLS & EXTRAS
+════════════════════════════════════════ */
+.skills-table { 
+    width: 100%; border: none; font-size: 10.5pt; margin-bottom: 8px; border-collapse: collapse; 
+}
+.skills-table td { 
+    padding: 3px 0; vertical-align: top; 
+}
+.skill-label-wrapper { 
+    position: relative; 
+    padding-left: 24px; /* Matches .bullet-list li exactly */
+} 
+.skill-bullet { 
+    position: absolute; 
+    left: 8px; /* Matches .bullet-list li::before exactly */
+    font-weight: bold; 
+    font-size: 1.2em; 
+    line-height: 1.1; 
+}
+
+.extra-category { 
+    font-style: italic; font-weight: 700; margin: 6px 0 2px 0; font-size: 10.5pt; 
+}
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+.resume-footer {
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 9pt; 
+    color: #777; 
+    position: absolute;
+    bottom: 12mm; 
+    left: 12mm;   
+    right: 12mm;  
+}
+.footer-line { 
+    flex: 1; height: 1px; background-color: #5b9bd5; 
+}
+.footer-text { 
+    padding: 0 15px; text-align: center; line-height: 1.4; 
+}
