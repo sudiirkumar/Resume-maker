@@ -67,6 +67,11 @@
                             <label>Profile Picture</label><input type="file" id="inp-photo" name="photo"
                                 accept="image/*" />
                         </div>
+                        <div class="input-group" style="grid-column: 1 / -1;">
+                            <label>Footer Details (Use Enter for new lines)</label>
+                            <textarea id="inp-footer" rows="2" placeholder="Enter Footer">XXXXX XXXX XXXX
+Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea>
+                        </div>
                     </div>
                 </section>
 
@@ -89,7 +94,10 @@
                 <section>
                     <h2>Academic Achievements</h2>
                     <div id="achievementsList">
-                        <input type="text" placeholder="Achievement" class="ach-input" />
+                        <div style="display:flex; gap:10px; margin-bottom:8px;">
+                            <input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>
+                        </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addAchievement()">
                         + Add Achievement
@@ -114,7 +122,10 @@
                 <section>
                     <h2>Areas of Interest</h2>
                     <div id="interestsList">
-                        <input type="text" placeholder="Interest" class="int-input" />
+                        <div style="display:flex; gap:10px; margin-bottom:8px;">
+                            <input type="text" placeholder="Interest" class="int-input" style="flex:1;">
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>
+                        </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addInterest()">
                         + Add Interest
@@ -123,19 +134,14 @@
 
                 <section>
                     <h2>Technical Skills and Certifications</h2>
-                    <div class="grid-2">
-                        <div class="input-group">
-                            <label>Programming Languages</label><input type="text" id="inp-skills-prog"
-                                placeholder="C, C++, Python" />
-                        </div>
-                        <div class="input-group">
-                            <label>Engineering Software</label><input type="text" id="inp-skills-eng"
-                                placeholder="VS Code, Git" />
-                        </div>
-                        <div class="input-group">
-                            <label>Other Software</label><input type="text" id="inp-skills-other" />
-                        </div>
+                    <div class="grid-2" style="margin-bottom: 15px;">
+                        <div class="input-group"><label>Programming Languages</label><input type="text" id="inp-skills-prog" placeholder="C, C++, Python"></div>
+                        <div class="input-group"><label>Engineering Software</label><input type="text" id="inp-skills-eng" placeholder="VS Code, Git"></div>
+                        <div class="input-group"><label>Other Software</label><input type="text" id="inp-skills-other"></div>
                     </div>
+                    <!-- NEW DYNAMIC SKILLS LIST -->
+                    <div id="customSkillsList"></div>
+                    <button type="button" class="add-btn" onclick="addCustomSkill()">+ Add Skill Category</button>
                 </section>
 
                 <section>

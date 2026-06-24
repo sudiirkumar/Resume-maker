@@ -118,3 +118,20 @@ textarea { resize: vertical; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ════════════════════════════════════════
+   REMOVE BUTTONS
+════════════════════════════════════════ */
+.remove-btn {
+    grid-column: 1 / -1; /* Spans across the entire grid row */
+    justify-self: end; /* Aligns to the right */
+    color: #ef4444; 
+    background: none; 
+    border: none; 
+    cursor: pointer; 
+    font-size: 0.85rem; 
+    font-weight: 700;
+    padding: 0;
+    transition: color 0.2s;
+}
+.remove-btn:hover { color: #b91c1c; }
