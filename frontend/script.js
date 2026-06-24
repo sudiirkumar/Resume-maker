@@ -338,20 +338,27 @@ function paginateChunks(chunks) {
 }
 
 // ---- Data Import / Export ----
+// ---- Data Import / Export ----
 function downloadJSON() {
     const data = {
-        name: document.getElementById('inp-name').value, degree_title: document.getElementById('inp-degree-title').value,
-        gender: document.getElementById('inp-gender').value, dob: document.getElementById('inp-dob').value,
-        email: document.getElementById('inp-email').value, phone: document.getElementById('inp-phone').value,
+        name: document.getElementById('inp-name').value, 
+        degree_title: document.getElementById('inp-degree-title').value,
+        gender: document.getElementById('inp-gender').value, 
+        dob: document.getElementById('inp-dob').value,
+        email: document.getElementById('inp-email').value, 
+        phone: document.getElementById('inp-phone').value,
         profile_pic_path: profilePicBase64,
-        skills_programming: document.getElementById('inp-skills-prog').value, skills_engineering: document.getElementById('inp-skills-eng').value, skills_other: document.getElementById('inp-skills-other').value,
+        logo_path: logoBase64, // <-- Added the logo here
+        skills_programming: document.getElementById('inp-skills-prog').value, 
+        skills_engineering: document.getElementById('inp-skills-eng').value, 
+        skills_other: document.getElementById('inp-skills-other').value,
         educations: [], achievements: [], projects: [], interests: [], pors: [], extras: [], custom_sections: []
     };
-
+    
     document.querySelectorAll('#educationList .list-item').forEach(i => data.educations.push({ year: i.querySelector('[data-field="year"]').value, degree: i.querySelector('[data-field="degree"]').value, institution: i.querySelector('[data-field="institution"]').value, score: i.querySelector('[data-field="score"]').value }));
-    document.querySelectorAll('.ach-input').forEach(i => { if (i.value) data.achievements.push(i.value); });
+    document.querySelectorAll('.ach-input').forEach(i => { if(i.value) data.achievements.push(i.value); });
     document.querySelectorAll('.project-item:not(.custom-item-type1)').forEach(i => data.projects.push({ title: i.querySelector('[data-field="title"]').value, date: i.querySelector('[data-field="date"]').value, desc: i.querySelector('[data-field="desc"]').value }));
-    document.querySelectorAll('.int-input:not(.c-bullet)').forEach(i => { if (i.value) data.interests.push(i.value); });
+    document.querySelectorAll('.int-input:not(.c-bullet)').forEach(i => { if(i.value) data.interests.push(i.value); });
     document.querySelectorAll('.por-item').forEach(i => data.pors.push({ role: i.querySelector('[data-field="role"]').value, date: i.querySelector('[data-field="date"]').value, desc: i.querySelector('[data-field="desc"]').value }));
     document.querySelectorAll('.extra-item:not(.custom-item-type3)').forEach(i => data.extras.push({ category: i.querySelector('[data-field="category"]').value, desc: i.querySelector('[data-field="desc"]').value }));
 
@@ -360,7 +367,7 @@ function downloadJSON() {
         if (secData.type === 'type1') {
             sec.querySelectorAll('.custom-item-type1').forEach(item => { secData.items.push({ title: item.querySelector('.c-title').value, date: item.querySelector('.c-date').value, desc: item.querySelector('.c-desc').value }); });
         } else if (secData.type === 'type2') {
-            sec.querySelectorAll('.c-bullet').forEach(item => { if (item.value) secData.items.push(item.value); });
+            sec.querySelectorAll('.c-bullet').forEach(item => { if(item.value) secData.items.push(item.value); });
         } else if (secData.type === 'type3') {
             sec.querySelectorAll('.custom-item-type3').forEach(item => { secData.items.push({ cat: item.querySelector('.c-cat').value, desc: item.querySelector('.c-desc').value }); });
         }
@@ -372,43 +379,50 @@ function downloadJSON() {
     a.click(); URL.revokeObjectURL(a.href);
 }
 
-document.getElementById('uploadJsonBtn').addEventListener('change', function (e) {
+document.getElementById('uploadJsonBtn').addEventListener('change', function(e) {
     if (!e.target.files[0]) return;
     const reader = new FileReader();
-    reader.onload = function (evt) {
+    reader.onload = function(evt) {
         const data = JSON.parse(evt.target.result);
-        document.getElementById('inp-name').value = data.name || ''; document.getElementById('inp-degree-title').value = data.degree_title || '';
-        document.getElementById('inp-gender').value = data.gender || 'Male'; document.getElementById('inp-dob').value = data.dob || '';
-        document.getElementById('inp-email').value = data.email || ''; document.getElementById('inp-phone').value = data.phone || '';
-        document.getElementById('inp-skills-prog').value = data.skills_programming || ''; document.getElementById('inp-skills-eng').value = data.skills_engineering || ''; document.getElementById('inp-skills-other').value = data.skills_other || '';
+        document.getElementById('inp-name').value = data.name || ''; 
+        document.getElementById('inp-degree-title').value = data.degree_title || '';
+        document.getElementById('inp-gender').value = data.gender || 'Male'; 
+        document.getElementById('inp-dob').value = data.dob || '';
+        document.getElementById('inp-email').value = data.email || ''; 
+        document.getElementById('inp-phone').value = data.phone || '';
+        document.getElementById('inp-skills-prog').value = data.skills_programming || ''; 
+        document.getElementById('inp-skills-eng').value = data.skills_engineering || ''; 
+        document.getElementById('inp-skills-other').value = data.skills_other || '';
+        
         profilePicBase64 = data.profile_pic_path || '';
+        logoBase64 = data.logo_path || ''; // <-- Restores the logo
 
         const fillList = (id, arr, htmlFn) => { const el = document.getElementById(id); el.innerHTML = ''; (arr || []).forEach(item => { const div = document.createElement('div'); div.className = 'list-item'; div.innerHTML = htmlFn(item); el.appendChild(div); }); };
-
-        fillList('educationList', data.educations, e => `<input type="text" placeholder="Year" data-field="year" class="edu-input" value="${escapeHTML(e.year || '')}"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input" value="${escapeHTML(e.degree || '')}"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input" value="${escapeHTML(e.institution || '')}"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input" value="${escapeHTML(e.score || '')}">`);
-
-        const achL = document.getElementById('achievementsList'); achL.innerHTML = ''; (data.achievements || []).forEach(a => { const i = document.createElement('input'); i.type = 'text'; i.className = 'ach-input'; i.value = a; achL.appendChild(i); });
-
-        fillList('projectsList', data.projects, p => `<input type="text" placeholder="Project Title" data-field="title" class="proj-input" value="${escapeHTML(p.title || '')}"><input type="text" placeholder="Date" data-field="date" class="proj-input" value="${escapeHTML(p.date || '')}"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc || '')}</textarea>`);
+        
+        fillList('educationList', data.educations, e => `<input type="text" placeholder="Year" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}">`);
+        
+        const achL = document.getElementById('achievementsList'); achL.innerHTML = ''; (data.achievements||[]).forEach(a => { const i = document.createElement('input'); i.type='text'; i.className='ach-input'; i.value=a; achL.appendChild(i); });
+        
+        fillList('projectsList', data.projects, p => `<input type="text" placeholder="Project Title" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" placeholder="Date" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea>`);
         document.querySelectorAll('#projectsList .list-item').forEach(el => el.classList.add('project-item'));
 
-        const intL = document.getElementById('interestsList'); intL.innerHTML = ''; (data.interests || []).forEach(int => { const i = document.createElement('input'); i.type = 'text'; i.className = 'int-input'; i.value = int; intL.appendChild(i); });
-
-        fillList('porList', data.pors, p => `<input type="text" placeholder="Role" data-field="role" class="por-input" value="${escapeHTML(p.role || '')}"><input type="text" placeholder="Date" data-field="date" class="por-input" value="${escapeHTML(p.date || '')}"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc || '')}</textarea>`);
+        const intL = document.getElementById('interestsList'); intL.innerHTML = ''; (data.interests||[]).forEach(int => { const i = document.createElement('input'); i.type='text'; i.className='int-input'; i.value=int; intL.appendChild(i); });
+        
+        fillList('porList', data.pors, p => `<input type="text" placeholder="Role" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" placeholder="Date" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea>`);
         document.querySelectorAll('#porList .list-item').forEach(el => el.classList.add('por-item'));
 
-        fillList('extraActivitesList', data.extras, e => `<input type="text" placeholder="Category" data-field="category" class="ext-input" value="${escapeHTML(e.category || '')}"><input type="text" placeholder="Details" data-field="desc" class="ext-input" value="${escapeHTML(e.desc || '')}">`);
+        fillList('extraActivitesList', data.extras, e => `<input type="text" placeholder="Category" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}"><input type="text" placeholder="Details" data-field="desc" class="ext-input" value="${escapeHTML(e.desc||'')}">`);
         document.querySelectorAll('#extraActivitesList .list-item').forEach(el => el.classList.add('extra-item'));
 
-        document.querySelectorAll('.custom-section').forEach(s => { if (s.nextElementSibling && s.nextElementSibling.classList.contains('add-custom-wrapper')) s.nextElementSibling.remove(); s.remove(); });
+        document.querySelectorAll('.custom-section').forEach(s => { if(s.nextElementSibling && s.nextElementSibling.classList.contains('add-custom-wrapper')) s.nextElementSibling.remove(); s.remove(); });
         const formBtn = document.getElementById('generateBtn');
         (data.custom_sections || []).forEach(cs => {
             const secId = 'custom-sec-' + Date.now() + Math.random();
             const sec = document.createElement('section'); sec.className = 'custom-section'; sec.id = secId; sec.dataset.type = cs.type;
             let html = `
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e74c3c; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;">
-                    <input type="text" class="custom-sec-title" style="font-size: 1.2rem; font-weight: bold; border: none; outline: none; color: #34495e; width: 75%; background: transparent;" value="${escapeHTML(cs.title)}" oninput="updatePreview()">
-                    <button type="button" onclick="const w = this.closest('section').nextElementSibling; if(w && w.classList.contains('add-custom-wrapper')) w.remove(); this.closest('section').remove(); updatePreview();" style="color: red; border: none; background: none; cursor: pointer; font-weight: bold;">X Remove Section</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;">
+                    <input type="text" class="custom-sec-title" style="font-size: 1.2rem; font-weight: bold; border: none; outline: none; color: #0f172a; width: 75%; background: transparent;" value="${escapeHTML(cs.title)}" oninput="updatePreview()">
+                    <button type="button" onclick="const w = this.closest('section').nextElementSibling; if(w && w.classList.contains('add-custom-wrapper')) w.remove(); this.closest('section').remove(); updatePreview();" style="color: #ef4444; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 0.9rem;">&times; Remove</button>
                 </div>
                 <div class="custom-items-container"></div>
             `;
@@ -418,7 +432,7 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function (e)
 
             sec.innerHTML = html;
             formBtn.parentNode.insertBefore(sec, formBtn);
-
+            
             const w = document.createElement('div'); w.className = 'add-custom-wrapper'; w.style.cssText = 'margin: 15px 0 25px 0;';
             w.innerHTML = getWrapperHTML();
             formBtn.parentNode.insertBefore(w, formBtn);
@@ -427,14 +441,14 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function (e)
             cs.items.forEach(item => {
                 if (cs.type === 'type1') {
                     const div = document.createElement('div'); div.className = 'list-item project-item custom-item-type1';
-                    div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title || '')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date || '')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc || '')}</textarea>`;
+                    div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea>`;
                     container.appendChild(div);
                 } else if (cs.type === 'type2') {
                     const input = document.createElement('input'); input.type = 'text'; input.className = 'c-bullet ach-input'; input.value = item; input.style.marginBottom = '8px';
                     container.appendChild(input);
                 } else if (cs.type === 'type3') {
                     const div = document.createElement('div'); div.className = 'list-item extra-item custom-item-type3';
-                    div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat || '')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc || '')}">`;
+                    div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}">`;
                     container.appendChild(div);
                 }
             });
