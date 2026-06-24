@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume PDF Generator</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="preview.css">
+    
+    <!-- (Optional) Bumping ?v=3 to bust cache again just in case -->
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="preview.css?v=3">
 </head>
 <body>
     <div class="app-layout">
-        <div class="form-panel">
+        
+        <div class="form-panel" id="leftPanel">
             <h1>Resume Generator</h1>
             
             <section style="background: #e8f4f8; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
@@ -114,10 +117,15 @@
             <div id="status"></div>
         </div>
 
-        <div class="preview-panel">
+        <div class="resizer" id="dragMe">
+            <div class="resizer-handle"></div>
+        </div>
+
+        <div class="preview-panel" id="rightPanel">
           <div id="resume-pages">
               </div>
         </div>
+        
     </div>
     <script src="script.js"></script>
 </body>
