@@ -152,7 +152,7 @@ function updatePreview() {
     const profilePicDisplay = profilePicBase64 ? 'block' : 'none';
     
     // --- DYNAMIC NAME SCALING LOGIC ---
-    const nameText = document.getElementById('inp-name').value || 'SUDHIR KUMAR';
+    const nameText = document.getElementById('inp-name').value || 'Your Name';
     const nameLength = nameText.length;
     let nameFontSize = 20; // Default size in pt
     
@@ -172,10 +172,10 @@ function updatePreview() {
             <h1 class="header-name" style="font-size: ${nameFontSize}pt;">${escapeHTML(nameText)}</h1>
             <p class="header-info">
                 <span>${escapeHTML(document.getElementById('inp-degree-title').value) || 'Master of Computer Applications'}</span><br>
-                Gender: <span>${escapeHTML(document.getElementById('inp-gender').value) || 'Male'}</span><br>
-                Date of Birth: <span>${escapeHTML(document.getElementById('inp-dob').value) || '07/08/2002'}</span><br>
-                E-mail : <span>${escapeHTML(document.getElementById('inp-email').value) || 'tp@nitt.edu'}</span><br>
-                Contact : <span>${escapeHTML(document.getElementById('inp-phone').value) || '+91-431-2501081'}</span>
+                Gender: <span>${escapeHTML(document.getElementById('inp-gender').value) || ''}</span><br>
+                Date of Birth: <span>${escapeHTML(document.getElementById('inp-dob').value) || 'DD/MM/YYYY'}</span><br>
+                E-mail : <span>${escapeHTML(document.getElementById('inp-email').value) || 'abc@example.com'}</span><br>
+                Contact : <span>${escapeHTML(document.getElementById('inp-phone').value) || '+91-XYZ-ABCDEFG'}</span>
             </p>
         </div>
         <div class="profile-pic-container"><img src="${profilePicBase64}" style="display: ${profilePicDisplay}; width: 100%; height: 100%; object-fit: cover;"></div>
