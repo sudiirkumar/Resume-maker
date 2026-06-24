@@ -144,23 +144,38 @@ function addCustomItem(secId, type) {
 
 // ---- DYNAMIC DOM-ORDERED PAGINATION ENGINE ----
 function updatePreview() {
-    const chunks = [];
+    const chunks = []; 
 
     const headerChunk = document.createElement('div');
     headerChunk.className = 'resume-header';
+    
     const profilePicDisplay = profilePicBase64 ? 'block' : 'none';
+    
+    // --- DYNAMIC NAME SCALING LOGIC ---
+    const nameText = document.getElementById('inp-name').value || 'SUDHIR KUMAR';
+    const nameLength = nameText.length;
+    let nameFontSize = 20; // Default size in pt
+    
+    if (nameLength > 22) {
+        // Dynamically reduce size based on the ratio of extra characters
+        // (Adding a minimum cap of 11pt so it never gets completely unreadable)
+        nameFontSize = Math.max(11, 20 * (22 / nameLength)); 
+    }
+    // ----------------------------------
+
     headerChunk.innerHTML = `
         <div class="school-logo">
             ${logoBase64 ? `<img src="${logoBase64}" alt="Logo">` : '<div style="color:#ccc; font-size:10px; text-align:center;">Logo</div>'}
         </div>
         <div class="header-center">
-            <h1 class="header-name">${escapeHTML(document.getElementById('inp-name').value) || 'YOUR NAME'}</h1>
+            <!-- Apply the dynamic font size inline -->
+            <h1 class="header-name" style="font-size: ${nameFontSize}pt;">${escapeHTML(nameText)}</h1>
             <p class="header-info">
                 <span>${escapeHTML(document.getElementById('inp-degree-title').value) || 'Master of Computer Applications'}</span><br>
-                Gender: <span>${escapeHTML(document.getElementById('inp-gender').value) || ''}</span><br>
-                Date of Birth: <span>${escapeHTML(document.getElementById('inp-dob').value) || 'DD/MM/YYYY'}</span><br>
-                E-mail : <span>${escapeHTML(document.getElementById('inp-email').value) || 'abc@example.com'}</span><br>
-                Contact : <span>${escapeHTML(document.getElementById('inp-phone').value) || '+91-XYZ-ABCDEFG'}</span>
+                Gender: <span>${escapeHTML(document.getElementById('inp-gender').value) || 'Male'}</span><br>
+                Date of Birth: <span>${escapeHTML(document.getElementById('inp-dob').value) || '07/08/2002'}</span><br>
+                E-mail : <span>${escapeHTML(document.getElementById('inp-email').value) || 'tp@nitt.edu'}</span><br>
+                Contact : <span>${escapeHTML(document.getElementById('inp-phone').value) || '+91-431-2501081'}</span>
             </p>
         </div>
         <div class="profile-pic-container"><img src="${profilePicBase64}" style="display: ${profilePicDisplay}; width: 100%; height: 100%; object-fit: cover;"></div>
