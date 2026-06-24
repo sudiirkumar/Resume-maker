@@ -336,7 +336,7 @@ function paginateChunks(chunks) {
     }
 }
 
-// ---- Data Import / Export (Fully Updated for Remove Buttons & Custom Skills & Footer) ----
+// ---- Data Import / Export (Fully Updated for Remove Buttons, Custom Skills, Footer & Smart Section Placement) ----
 function downloadJSON() {
     const data = {
         name: document.getElementById('inp-name').value, degree_title: document.getElementById('inp-degree-title').value,
@@ -356,8 +356,28 @@ function downloadJSON() {
     document.querySelectorAll('#porList .por-item').forEach(i => data.pors.push({ role: i.querySelector('[data-field="role"]').value, date: i.querySelector('[data-field="date"]').value, desc: i.querySelector('[data-field="desc"]').value }));
     document.querySelectorAll('#extraActivitesList .extra-item').forEach(i => data.extras.push({ category: i.querySelector('[data-field="category"]').value, desc: i.querySelector('[data-field="desc"]').value }));
 
+    // Extract custom sections AND track their DOM Position
     document.querySelectorAll('.custom-section').forEach(sec => {
-        const secData = { title: sec.querySelector('.custom-sec-title').value, type: sec.dataset.type, items: [] };
+        let prev = sec.previousElementSibling;
+        let insertAfterHeading = '';
+        
+        // Look up the DOM to find the title of the standard section this custom section follows
+        while(prev) {
+            if (prev.tagName === 'SECTION' && !prev.classList.contains('custom-section')) {
+                let h2 = prev.querySelector('h2');
+                if(h2) insertAfterHeading = h2.textContent;
+                break;
+            }
+            prev = prev.previousElementSibling;
+        }
+
+        const secData = { 
+            title: sec.querySelector('.custom-sec-title').value, 
+            type: sec.dataset.type, 
+            insertAfterHeading: insertAfterHeading, // Saving the placement context
+            items: [] 
+        };
+        
         if (secData.type === 'type1') { sec.querySelectorAll('.custom-item-type1').forEach(item => { secData.items.push({ title: item.querySelector('.c-title').value, date: item.querySelector('.c-date').value, desc: item.querySelector('.c-desc').value }); }); } 
         else if (secData.type === 'type2') { sec.querySelectorAll('.c-bullet').forEach(item => { if(item.value) secData.items.push(item.value); }); } 
         else if (secData.type === 'type3') { sec.querySelectorAll('.custom-item-type3').forEach(item => { secData.items.push({ cat: item.querySelector('.c-cat').value, desc: item.querySelector('.c-desc').value }); }); }
@@ -374,6 +394,7 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
     const reader = new FileReader();
     reader.onload = function(evt) {
         const data = JSON.parse(evt.target.result);
+        
         document.getElementById('inp-name').value = data.name || ''; document.getElementById('inp-degree-title').value = data.degree_title || '';
         document.getElementById('inp-gender').value = data.gender || 'Male'; document.getElementById('inp-dob').value = data.dob || '';
         document.getElementById('inp-email').value = data.email || ''; document.getElementById('inp-phone').value = data.phone || '';
@@ -383,24 +404,36 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
 
         const fillList = (id, arr, htmlFn) => { const el = document.getElementById(id); el.innerHTML = ''; (arr || []).forEach(item => { const div = document.createElement('div'); div.className = 'list-item'; div.innerHTML = htmlFn(item); el.appendChild(div); }); };
         
-        const skillL = document.getElementById('customSkillsList'); skillL.innerHTML = ''; (data.custom_skills||[]).forEach(s => { const div = document.createElement('div'); div.className = 'list-item custom-skill-item'; div.innerHTML = `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`; skillL.appendChild(div); });
-        fillList('educationList', data.educations, e => `<input type="text" placeholder="Year" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+        const skillL = document.getElementById('customSkillsList'); skillL.innerHTML = ''; (data.custom_skills||[]).forEach(s => { const div = document.createElement('div'); div.className = 'list-item custom-skill-item'; div.innerHTML = `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`; skillL.appendChild(div); });
+        fillList('educationList', data.educations, e => `<input type="text" placeholder="Year" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`);
         
         const achL = document.getElementById('achievementsList'); achL.innerHTML = ''; (data.achievements||[]).forEach(a => { const div = document.createElement('div'); div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" class="ach-input" value="${escapeHTML(a)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`; achL.appendChild(div); });
-        fillList('projectsList', data.projects, p => `<input type="text" placeholder="Project Title" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" placeholder="Date" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+        fillList('projectsList', data.projects, p => `<input type="text" placeholder="Project Title" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" placeholder="Date" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`);
         document.querySelectorAll('#projectsList .list-item').forEach(el => el.classList.add('project-item'));
 
         const intL = document.getElementById('interestsList'); intL.innerHTML = ''; (data.interests||[]).forEach(int => { const div = document.createElement('div'); div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" class="int-input" value="${escapeHTML(int)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`; intL.appendChild(div); });
-        fillList('porList', data.pors, p => `<input type="text" placeholder="Role" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" placeholder="Date" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+        fillList('porList', data.pors, p => `<input type="text" placeholder="Role" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" placeholder="Date" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`);
         document.querySelectorAll('#porList .list-item').forEach(el => el.classList.add('por-item'));
 
-        fillList('extraActivitesList', data.extras, e => `<input type="text" placeholder="Category" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}"><input type="text" placeholder="Details" data-field="desc" class="ext-input" value="${escapeHTML(e.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+        fillList('extraActivitesList', data.extras, e => `<input type="text" placeholder="Category" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}"><input type="text" placeholder="Details" data-field="desc" class="ext-input" value="${escapeHTML(e.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`);
         document.querySelectorAll('#extraActivitesList .list-item').forEach(el => el.classList.add('extra-item'));
 
-        document.querySelectorAll('.custom-section').forEach(s => { if(s.nextElementSibling && s.nextElementSibling.classList.contains('add-custom-wrapper')) s.nextElementSibling.remove(); s.remove(); });
+        // --- SANITIZE FORM (Clears ghost wrappers before loading) ---
+        document.querySelectorAll('.add-custom-wrapper, .custom-section').forEach(el => el.remove());
+        
+        // Re-inject pristine wrappers after standard sections
+        document.querySelectorAll('#resumeForm > section').forEach((sec) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'add-custom-wrapper'; wrapper.style.cssText = 'margin: 15px 0 25px 0;';
+            wrapper.innerHTML = getWrapperHTML();
+            sec.insertAdjacentElement('afterend', wrapper);
+        });
+
+        // --- RESTORE CUSTOM SECTIONS IN CORRECT ORDER ---
         const formBtn = document.getElementById('generateBtn');
         (data.custom_sections || []).forEach(cs => {
-            const secId = 'custom-sec-' + Date.now() + Math.random(); const sec = document.createElement('section'); sec.className = 'custom-section'; sec.id = secId; sec.dataset.type = cs.type;
+            const secId = 'custom-sec-' + Date.now() + Math.random(); 
+            const sec = document.createElement('section'); sec.className = 'custom-section'; sec.id = secId; sec.dataset.type = cs.type;
             let html = `
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;">
                     <input type="text" class="custom-sec-title" style="font-size: 1.2rem; font-weight: bold; border: none; outline: none; color: #0f172a; width: 75%; background: transparent;" value="${escapeHTML(cs.title)}" oninput="updatePreview()">
@@ -411,15 +444,47 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
             if (cs.type === 'type1') html += `<button type="button" class="add-btn" onclick="addCustomItem('${secId}', 'type1')" style="margin-top: 10px;">+ Add Item</button>`;
             if (cs.type === 'type2') html += `<button type="button" class="add-btn" onclick="addCustomItem('${secId}', 'type2')" style="margin-top: 10px;">+ Add Bullet</button>`;
             if (cs.type === 'type3') html += `<button type="button" class="add-btn" onclick="addCustomItem('${secId}', 'type3')" style="margin-top: 10px;">+ Add Category</button>`;
+            sec.innerHTML = html;
 
-            sec.innerHTML = html; formBtn.parentNode.insertBefore(sec, formBtn);
-            const w = document.createElement('div'); w.className = 'add-custom-wrapper'; w.style.cssText = 'margin: 15px 0 25px 0;'; w.innerHTML = getWrapperHTML(); formBtn.parentNode.insertBefore(w, formBtn);
+            // SMART PLACEMENT LOGIC
+            let targetWrapper = null;
+            if (cs.insertAfterHeading) {
+                const standardSections = Array.from(document.querySelectorAll('#resumeForm > section:not(.custom-section)'));
+                
+                // Find the original standard section this custom section belonged to
+                const targetSec = standardSections.find(s => {
+                    let h2 = s.querySelector('h2');
+                    return h2 && h2.textContent === cs.insertAfterHeading;
+                });
+                
+                // Find the last wrapper just before the next standard section
+                if (targetSec) {
+                    let next = targetSec.nextElementSibling;
+                    while(next && next.tagName !== 'SECTION' && next.id !== 'generateBtn') {
+                        if (next.classList.contains('add-custom-wrapper')) targetWrapper = next;
+                        next = next.nextElementSibling;
+                    }
+                }
+            }
 
+            if (targetWrapper) {
+                // Restore specifically below its parent section
+                targetWrapper.parentNode.insertBefore(sec, targetWrapper);
+                const w = document.createElement('div'); w.className = 'add-custom-wrapper'; w.style.cssText = 'margin: 15px 0 25px 0;'; w.innerHTML = getWrapperHTML();
+                sec.insertAdjacentElement('beforebegin', w);
+            } else {
+                // Fallback (for older JSON versions without position tracking)
+                formBtn.parentNode.insertBefore(sec, formBtn);
+                const w = document.createElement('div'); w.className = 'add-custom-wrapper'; w.style.cssText = 'margin: 15px 0 25px 0;'; w.innerHTML = getWrapperHTML();
+                sec.insertAdjacentElement('beforebegin', w);
+            }
+
+            // Restore internal items
             const container = sec.querySelector('.custom-items-container');
             cs.items.forEach(item => {
-                if (cs.type === 'type1') { const div = document.createElement('div'); div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`; container.appendChild(div); } 
+                if (cs.type === 'type1') { const div = document.createElement('div'); div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`; container.appendChild(div); } 
                 else if (cs.type === 'type2') { const div = document.createElement('div'); div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`; container.appendChild(div); } 
-                else if (cs.type === 'type3') { const div = document.createElement('div'); div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`; container.appendChild(div); }
+                else if (cs.type === 'type3') { const div = document.createElement('div'); div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn">X Remove Section</button>`; container.appendChild(div); }
             });
         });
         updatePreview();
@@ -427,6 +492,7 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
     reader.readAsText(e.target.files[0]);
 });
 
+// ---- INITIALIZATION & RESIZER ----
 updatePreview();
 
 const resizer = document.getElementById('dragMe');
