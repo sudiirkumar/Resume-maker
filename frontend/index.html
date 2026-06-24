@@ -1,32 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume PDF Generator</title>
-    
+
     <!-- (Optional) Bumping ?v=3 to bust cache again just in case -->
-    <link rel="stylesheet" href="style.css?v=3">
-    <link rel="stylesheet" href="preview.css?v=3">
+    <link rel="stylesheet" href="style.css?v=3" />
+    <link rel="stylesheet" href="preview.css?v=3" />
 </head>
+
 <body>
     <div class="app-layout">
-        
         <div class="form-panel" id="leftPanel">
             <h1>Resume Generator</h1>
-            
-            <section style="background: #e8f4f8; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
-                <h3 style="margin-top: 0;">Upload JSON</h3>
-                <input type="file" id="uploadJsonBtn" accept="application/json" style="margin-bottom: 10px;">
-                <p style="font-size: 12px; color: #666; margin: 0;">Load previously saved resume data</p>
+
+            <section style="
+            background: #e8f4f8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+          ">
+                <h3 style="margin-top: 0">Upload JSON</h3>
+                <input type="file" id="uploadJsonBtn" accept="application/json" style="margin-bottom: 10px" />
+                <p style="font-size: 12px; color: #666; margin: 0">
+                    Load previously saved resume data
+                </p>
             </section>
 
             <form id="resumeForm">
                 <section>
                     <h2>Personal Information</h2>
+                    <div class="input-group">
+                        <label>College Logo</label>
+                        <input type="file" id="inp-logo" name="logo" accept="image/*" />
+                    </div>
                     <div class="grid-2">
-                        <div class="input-group"><label>Full Name</label><input type="text" id="inp-name" name="name" required placeholder="John Doe"></div>
-                        <div class="input-group"><label>Degree Specialization</label><input type="text" id="inp-degree-title" name="degree_title" required placeholder="Master of Computer Applications"></div>
+                        <div class="input-group">
+                            <label>Full Name</label><input type="text" id="inp-name" name="name" required
+                                placeholder="John Doe" />
+                        </div>
+                        <div class="input-group">
+                            <label>Degree Specialization</label><input type="text" id="inp-degree-title"
+                                name="degree_title" required placeholder="Master of Computer Applications" />
+                        </div>
                         <div class="input-group">
                             <label>Gender</label>
                             <select id="inp-gender" name="gender">
@@ -35,10 +53,20 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="input-group"><label>Date of Birth</label><input type="text" id="inp-dob" name="dob" placeholder="07/08/2002"></div>
-                        <div class="input-group"><label>Email</label><input type="email" id="inp-email" name="email" required></div>
-                        <div class="input-group"><label>Contact Number</label><input type="text" id="inp-phone" name="phone" required></div>
-                        <div class="input-group"><label>Profile Picture</label><input type="file" id="inp-photo" name="photo" accept="image/*"></div>
+                        <div class="input-group">
+                            <label>Date of Birth</label><input type="text" id="inp-dob" name="dob"
+                                placeholder="07/08/2002" />
+                        </div>
+                        <div class="input-group">
+                            <label>Email</label><input type="email" id="inp-email" name="email" required />
+                        </div>
+                        <div class="input-group">
+                            <label>Contact Number</label><input type="text" id="inp-phone" name="phone" required />
+                        </div>
+                        <div class="input-group">
+                            <label>Profile Picture</label><input type="file" id="inp-photo" name="photo"
+                                accept="image/*" />
+                        </div>
                     </div>
                 </section>
 
@@ -46,45 +74,67 @@
                     <h2>Educational Qualification</h2>
                     <div id="educationList">
                         <div class="list-item">
-                            <input type="text" placeholder="Year" data-field="year" class="edu-input">
-                            <input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input">
-                            <input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input">
-                            <input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input">
+                            <input type="text" placeholder="Year" data-field="year" class="edu-input" />
+                            <input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input" />
+                            <input type="text" placeholder="Institution/Board" data-field="institution"
+                                class="edu-input" />
+                            <input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input" />
                         </div>
                     </div>
-                    <button type="button" class="add-btn" onclick="addEducation()">+ Add Education</button>
+                    <button type="button" class="add-btn" onclick="addEducation()">
+                        + Add Education
+                    </button>
                 </section>
 
                 <section>
                     <h2>Academic Achievements</h2>
-                    <div id="achievementsList"><input type="text" placeholder="Achievement" class="ach-input"></div>
-                    <button type="button" class="add-btn" onclick="addAchievement()">+ Add Achievement</button>
+                    <div id="achievementsList">
+                        <input type="text" placeholder="Achievement" class="ach-input" />
+                    </div>
+                    <button type="button" class="add-btn" onclick="addAchievement()">
+                        + Add Achievement
+                    </button>
                 </section>
 
                 <section>
                     <h2>Other Projects</h2>
                     <div id="projectsList">
                         <div class="list-item project-item">
-                            <input type="text" placeholder="Project Title" data-field="title" class="proj-input">
-                            <input type="text" placeholder="Date" data-field="date" class="proj-input">
-                            <textarea placeholder="Description" data-field="desc" class="proj-input" rows="3"></textarea>
+                            <input type="text" placeholder="Project Title" data-field="title" class="proj-input" />
+                            <input type="text" placeholder="Date" data-field="date" class="proj-input" />
+                            <textarea placeholder="Description" data-field="desc" class="proj-input"
+                                rows="3"></textarea>
                         </div>
                     </div>
-                    <button type="button" class="add-btn" onclick="addProject()">+ Add Project</button>
+                    <button type="button" class="add-btn" onclick="addProject()">
+                        + Add Project
+                    </button>
                 </section>
 
                 <section>
                     <h2>Areas of Interest</h2>
-                    <div id="interestsList"><input type="text" placeholder="Interest" class="int-input"></div>
-                    <button type="button" class="add-btn" onclick="addInterest()">+ Add Interest</button>
+                    <div id="interestsList">
+                        <input type="text" placeholder="Interest" class="int-input" />
+                    </div>
+                    <button type="button" class="add-btn" onclick="addInterest()">
+                        + Add Interest
+                    </button>
                 </section>
 
                 <section>
                     <h2>Technical Skills and Certifications</h2>
                     <div class="grid-2">
-                        <div class="input-group"><label>Programming Languages</label><input type="text" id="inp-skills-prog" placeholder="C, C++, Python"></div>
-                        <div class="input-group"><label>Engineering Software</label><input type="text" id="inp-skills-eng" placeholder="VS Code, Git"></div>
-                        <div class="input-group"><label>Other Software</label><input type="text" id="inp-skills-other"></div>
+                        <div class="input-group">
+                            <label>Programming Languages</label><input type="text" id="inp-skills-prog"
+                                placeholder="C, C++, Python" />
+                        </div>
+                        <div class="input-group">
+                            <label>Engineering Software</label><input type="text" id="inp-skills-eng"
+                                placeholder="VS Code, Git" />
+                        </div>
+                        <div class="input-group">
+                            <label>Other Software</label><input type="text" id="inp-skills-other" />
+                        </div>
                     </div>
                 </section>
 
@@ -92,27 +142,35 @@
                     <h2>Positions of Responsibility</h2>
                     <div id="porList">
                         <div class="list-item por-item">
-                            <input type="text" placeholder="Role" data-field="role" class="por-input">
-                            <input type="text" placeholder="Date" data-field="date" class="por-input">
+                            <input type="text" placeholder="Role" data-field="role" class="por-input" />
+                            <input type="text" placeholder="Date" data-field="date" class="por-input" />
                             <textarea placeholder="Description" data-field="desc" class="por-input" rows="2"></textarea>
                         </div>
                     </div>
-                    <button type="button" class="add-btn" onclick="addPOR()">+ Add Responsibility</button>
+                    <button type="button" class="add-btn" onclick="addPOR()">
+                        + Add Responsibility
+                    </button>
                 </section>
 
                 <section>
                     <h2>Extracurricular Activities</h2>
                     <div id="extraActivitesList">
                         <div class="list-item extra-item">
-                            <input type="text" placeholder="Category" data-field="category" class="ext-input">
-                            <input type="text" placeholder="Details" data-field="desc" class="ext-input">
+                            <input type="text" placeholder="Category" data-field="category" class="ext-input" />
+                            <input type="text" placeholder="Details" data-field="desc" class="ext-input" />
                         </div>
                     </div>
-                    <button type="button" class="add-btn" onclick="addExtracurricular()">+ Add Activity</button>
+                    <button type="button" class="add-btn" onclick="addExtracurricular()">
+                        + Add Activity
+                    </button>
                 </section>
 
-                <button type="button" class="submit-btn" id="generateBtn" onclick="window.print()">Print / Save PDF</button>
-                <button type="button" class="add-btn" onclick="downloadJSON()" style="width: 100%; margin-top: 10px;">Download JSON</button>
+                <button type="button" class="submit-btn" id="generateBtn" onclick="window.print()">
+                    Print / Save PDF
+                </button>
+                <button type="button" class="add-btn" onclick="downloadJSON()" style="width: 100%; margin-top: 10px">
+                    Download JSON
+                </button>
             </form>
             <div id="status"></div>
         </div>
@@ -122,11 +180,10 @@
         </div>
 
         <div class="preview-panel" id="rightPanel">
-          <div id="resume-pages">
-              </div>
+            <div id="resume-pages"></div>
         </div>
-        
     </div>
     <script src="script.js"></script>
 </body>
+
 </html>
