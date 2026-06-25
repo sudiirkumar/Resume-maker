@@ -201,9 +201,11 @@
     content: "";
     flex-grow: 1;
     margin-left: 12px;
-    height: 1.5px; /* Defines exact thickness */
-    background-color: #B22222; /* Standardized red */
-    align-self: center; /* Vertically centers the line with the text */
+    height: 0; /* Remove height */
+    border-top: 1.5pt solid #B22222; /* Use border and print units (pt) */
+    align-self: center;
+    -webkit-print-color-adjust: exact; /* Force exact rendering */
+    print-color-adjust: exact;
 }
 /* ════════════════════════════════════════
    TABLES & LISTS
@@ -306,7 +308,11 @@
     right: 12mm;  
 }
 .footer-line { 
-    flex: 1; height: 1px; background-color: #5b9bd5; 
+    flex: 1; 
+    height: 0; /* Remove height */
+    border-top: 1pt solid #5b9bd5; /* Use border and print units (pt) */
+    -webkit-print-color-adjust: exact; /* Force exact rendering */
+    print-color-adjust: exact;
 }
 .footer-text { 
     padding: 0 15px; text-align: center; line-height: 1.4; 

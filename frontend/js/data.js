@@ -96,3 +96,100 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
 
 // Run Initial Render
 updatePreview();
+
+// ==========================================
+// 🚀 HYBRID PDF GENERATOR (SERVER + FALLBACK)
+// ==========================================
+async function downloadPDF() {
+    const btn = document.getElementById('generateBtn');
+    const originalText = btn.innerHTML;
+    
+    // Update UI to show processing state
+    btn.innerHTML = 'Generating PDF...';
+    btn.disabled = true;
+
+    try {
+        // 1. Gather the HTML and CSS
+        // We fetch the CSS locally so the backend gets the exact styles without needing network access
+        const cssRes = await fetch('preview.css?v=5');
+        const cssText = await cssRes.text();
+        
+        // Grab ONLY the resume pages (ignoring the left UI panel entirely)
+        const resumeHTML = document.getElementById('resume-pages').outerHTML;
+        
+        // Construct a clean, standalone HTML document for Playwright to read
+        const payloadHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+                <style>
+                    ${cssText}
+                    /* Reset background and padding for clean headless browser rendering */
+                    body { background: white; margin: 0; padding: 0; }
+                    #resume-pages { padding: 0; gap: 0; }
+                </style>
+            </head>
+            <body>
+                ${resumeHTML}
+            </body>
+            </html>
+        `;
+
+        // 2. Set up the 30-second Timeout Controller
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        // 3. Call the FastAPI backend
+        // NOTE: Change this URL when you deploy your backend to production!
+        const response = await fetch('http://127.0.0.1:8000/api/generate-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ html: payloadHTML }),
+            signal: controller.signal // Attaches the timeout monitor
+        });
+
+        clearTimeout(timeoutId); // Clear the timeout if the server responds in time
+
+        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+
+        // 4. Download the PDF Blob from the server
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        // Dynamically name the file based on the user's name
+        const userName = document.getElementById('inp-name').value.trim() || 'Resume';
+        a.download = `${userName.replace(/\s+/g, '_')}_Resume.pdf`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+    } catch (error) {
+        // ==========================================
+        // 🛡️ THE FALLBACK MECHANISM
+        // ==========================================
+        console.warn("Backend generation failed or timed out. Falling back to local print...", error);
+        
+        btn.innerHTML = 'Server Offline: Using Local Print...';
+        
+        // Wait half a second so the user sees the fallback message, then open the print dialog
+        setTimeout(() => {
+            window.print();
+        }, 500);
+
+    } finally {
+        // Restore the button to its original state after a short delay
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2500);
+    }
+}
+
+// Attach the listener to your existing button
+document.getElementById('generateBtn').addEventListener('click', downloadPDF);

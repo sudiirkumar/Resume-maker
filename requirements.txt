@@ -2,3 +2,8 @@ fastapi
 uvicorn
 playwright
 pydantic
+motor
+beanie
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
