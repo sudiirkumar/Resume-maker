@@ -3,7 +3,7 @@
 // ==========================================
 
 // Change this to your live backend URL when deploying!
-const API_BASE_URL = 'https://resume-maker-ih3k.onrender.com:10000/api';
+const API_BASE_URL = 'https://resume-maker-ih3k.onrender.com/api';
 let isLoginMode = true;
 
 // DOM Elements
@@ -54,14 +54,17 @@ function hideMessage() {
 
 // Check login state when the page loads
 // Check login state and backend health when the page loads
+// Check login state and backend health when the page loads
 document.addEventListener('DOMContentLoaded', async () => {
     if (!openAuthBtn) return;
 
     try {
         // 1. Ping the backend to see if it is alive
-        // We use a short timeout so the user isn't waiting forever if the server is down
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second max wait
+        
+        // BUMP TIMEOUT TO 60 SECONDS: 
+        // This gives Render's free tier enough time to wake up from a cold start!
+        const timeoutId = setTimeout(() => controller.abort(), 60000); 
 
         const response = await fetch(`${API_BASE_URL}/health`, { 
             method: 'GET',
@@ -72,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (response.ok) {
             // 2. The backend is ALIVE! Reveal the button.
-            openAuthBtn.style.display = 'inline-block'; // Or 'block', depending on your CSS layout
+            openAuthBtn.style.display = 'inline-block'; 
 
             // 3. Check if they are already logged in
             if (localStorage.getItem('resume_jwt_token')) {
@@ -81,9 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         // 4. The backend is DEAD or unreachable. 
-        // We do absolutely nothing. The button remains hidden, and the 
-        // user uses the local JSON export without ever knowing something failed!
-        console.error("Backend health check failed:", error);
+        if (error.name === 'AbortError') {
+            console.warn("Backend health check timed out (Server might be asleep). Cloud features disabled.");
+        } else {
+            console.warn("Backend is currently offline or unreachable. Cloud features disabled.");
+        }
     }
 });
 
