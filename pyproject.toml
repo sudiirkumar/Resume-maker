@@ -1,0 +1,20 @@
+[project]
+name = "resume-maker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "playwright",
+    "pydantic",
+    "motor",
+    "beanie",
+    "bcrypt",
+    "python-jose[cryptography]",
+    "python-dotenv"
+]
+
+[tool.vercel]
+entrypoint = "backend.main:app"

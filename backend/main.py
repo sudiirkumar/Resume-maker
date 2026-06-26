@@ -118,6 +118,11 @@ async def save_resume(
         )
         await new_resume.insert()
         return {"message": "Resume saved successfully"}
+    
+@app.get("/api/health")
+async def health_check():
+    """A simple ping to check if the backend is online."""
+    return {"status": "online"}
 
 @app.get("/api/resume", response_model=schemas.ResumeResponse)
 async def load_resume(current_user: models.User = Depends(get_current_user)):
