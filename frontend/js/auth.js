@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 4. The backend is DEAD or unreachable. 
         // We do absolutely nothing. The button remains hidden, and the 
         // user uses the local JSON export without ever knowing something failed!
-        console.warn("Backend is currently offline. Cloud features are disabled.");
+        console.error("Backend health check failed:", error);
     }
 });
 
