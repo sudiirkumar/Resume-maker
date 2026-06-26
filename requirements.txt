@@ -1,5 +1,9 @@
 fastapi
 uvicorn
-python-multipart
-docxtpl
-jinja2
+playwright
+pydantic
+motor
+beanie
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
