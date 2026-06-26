@@ -53,10 +53,37 @@ function hideMessage() {
 // --- 2. Smart Cloud Sync Logic ---
 
 // Check login state when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('resume_jwt_token') && openAuthBtn) {
-        loadResume.style.display = 'inline-block';
-        openAuthBtn.textContent = '☁️ Save to Cloud';
+// Check login state and backend health when the page loads
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!openAuthBtn) return;
+
+    try {
+        // 1. Ping the backend to see if it is alive
+        // We use a short timeout so the user isn't waiting forever if the server is down
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second max wait
+
+        const response = await fetch(`${API_BASE_URL}/health`, { 
+            method: 'GET',
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+            // 2. The backend is ALIVE! Reveal the button.
+            openAuthBtn.style.display = 'inline-block'; // Or 'block', depending on your CSS layout
+
+            // 3. Check if they are already logged in
+            if (localStorage.getItem('resume_jwt_token')) {
+                openAuthBtn.textContent = '☁️ Save to Cloud';
+            }
+        }
+    } catch (error) {
+        // 4. The backend is DEAD or unreachable. 
+        // We do absolutely nothing. The button remains hidden, and the 
+        // user uses the local JSON export without ever knowing something failed!
+        console.warn("Backend is currently offline. Cloud features are disabled.");
     }
 });
 
