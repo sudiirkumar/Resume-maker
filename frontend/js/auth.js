@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // 3. Check if they are already logged in
             if (localStorage.getItem('resume_jwt_token')) {
+                loadResume.style.display = 'inline-block';
                 openAuthBtn.textContent = '☁️ Save to Cloud';
             }
         }

@@ -189,7 +189,7 @@ async function downloadPDF() {
     // Smart URL routing based on environment
     const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://127.0.0.1:8000/api'
-        : 'https://your-render-backend-name.onrender.com/api'; // <-- Replace with your Render URL!
+        : 'https://resume-maker-ih3k.onrender.com/api'; // <-- Replace with your Render URL!
 
     try {
         // --- STEP 1: THE HEALTH CHECK (60s Timeout for Cold Starts) ---
