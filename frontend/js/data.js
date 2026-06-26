@@ -175,17 +175,41 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
 
 updatePreview();
 
+// ==========================================
+// 🚀 HYBRID PDF GENERATOR (SERVER + FALLBACK)
+// ==========================================
 async function downloadPDF() {
     const btn = document.getElementById('generateBtn');
     const originalText = btn.innerHTML;
     
-    btn.innerHTML = 'Generating PDF...';
+    // Update UI to show we are waking up the server
+    btn.innerHTML = '⏳ Waking Server & Generating...';
     btn.disabled = true;
 
+    // Smart URL routing based on environment
+    const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://127.0.0.1:8000/api'
+        : 'https://your-render-backend-name.onrender.com/api'; // <-- Replace with your Render URL!
+
     try {
+        // --- STEP 1: THE HEALTH CHECK (60s Timeout for Cold Starts) ---
+        const healthController = new AbortController();
+        const healthTimeoutId = setTimeout(() => healthController.abort(), 60000);
+
+        const healthRes = await fetch(`${API_URL}/health`, { 
+            method: 'GET',
+            signal: healthController.signal 
+        });
+        
+        clearTimeout(healthTimeoutId);
+
+        if (!healthRes.ok) throw new Error("Backend health check failed");
+
+        // --- STEP 2: PREPARE THE PAYLOAD ---
+        btn.innerHTML = '📄 Rendering PDF...'; // Server is awake, update UI
+        
         const cssRes = await fetch('preview.css?v=5');
         const cssText = await cssRes.text();
-        
         const resumeHTML = document.getElementById('resume-pages').outerHTML;
         
         const payloadHTML = `
@@ -206,20 +230,22 @@ async function downloadPDF() {
             </html>
         `;
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        // --- STEP 3: GENERATE PDF (30s Timeout since server is now awake) ---
+        const pdfController = new AbortController();
+        const pdfTimeoutId = setTimeout(() => pdfController.abort(), 30000);
 
-        const response = await fetch('http://127.0.0.1:8000/api/generate-pdf', {
+        const response = await fetch(`${API_URL}/generate-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ html: payloadHTML }),
-            signal: controller.signal 
+            signal: pdfController.signal
         });
 
-        clearTimeout(timeoutId); 
+        clearTimeout(pdfTimeoutId); 
 
         if (!response.ok) throw new Error(`Server Error: ${response.status}`);
 
+        // --- STEP 4: DOWNLOAD ---
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -234,9 +260,12 @@ async function downloadPDF() {
         window.URL.revokeObjectURL(url);
 
     } catch (error) {
+        // ==========================================
+        // 🛡️ THE FALLBACK MECHANISM
+        // ==========================================
         console.warn("Backend generation failed or timed out. Falling back to local print...", error);
         
-        btn.innerHTML = 'Server Offline: Using Local Print...';
+        btn.innerHTML = '⚠️ Server Offline: Using Local Print...';
         
         setTimeout(() => {
             window.print();
