@@ -228,33 +228,15 @@ async function downloadPDF() {
     const btn = document.getElementById('generateBtn');
     const originalText = btn.innerHTML;
     
-    // Update UI to show we are waking up the server
-    btn.innerHTML = '⏳ Waking Server & Generating...';
+    btn.innerHTML = '⏳ Generating PDF...';
     btn.disabled = true;
 
-    // Smart URL routing based on environment
     const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://127.0.0.1:8000/api'
-        : 'https://resume-maker-ih3k.onrender.com/api'; // <-- Replace with your Render URL!
+        : 'https://resume-maker-ih3k.onrender.com/api';
 
     try {
-        // --- STEP 1: THE HEALTH CHECK (60s Timeout for Cold Starts) ---
-        const healthController = new AbortController();
-        const healthTimeoutId = setTimeout(() => healthController.abort(), 60000);
-
-        const healthRes = await fetch(`${API_URL}/health`, { 
-            method: 'GET',
-            signal: healthController.signal 
-        });
-        
-        clearTimeout(healthTimeoutId);
-
-        if (!healthRes.ok) throw new Error("Backend health check failed");
-
-        // --- STEP 2: PREPARE THE PAYLOAD ---
-        btn.innerHTML = '📄 Rendering PDF...'; // Server is awake, update UI
-        
-        const cssRes = await fetch('preview.css?v=5');
+        const cssRes = await fetch('preview.css?v=6');
         const cssText = await cssRes.text();
         const resumeHTML = document.getElementById('resume-pages').outerHTML;
         
@@ -263,79 +245,10 @@ async function downloadPDF() {
             <html>
             <head>
                 <meta charset="UTF-8">
+                <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
                 <style>
-                    /* Force WeasyPrint to download the raw TTF file */
-                    @font-face {
-                        font-family: 'LatoLocal';
-                        src: url('./fonts/Lato-Regular.ttf') format('truetype');
-                        font-weight: 400;
-                        font-style: normal;
-                    }
-                    @font-face {
-                        font-family: 'LatoLocal';
-                        src: url('./fonts/Lato-Bold.ttf') format('truetype');
-                        font-weight: 700;
-                        font-style: normal;
-                    }
-                    @font-face {
-                        font-family: 'LatoLocal';
-                        src: url('./fonts/Lato-Italic.ttf') format('truetype');
-                        font-weight: 400;
-                        font-style: italic;
-                    }
-                    @font-face {
-                        font-family: 'LatoLocal';
-                        src: url('./fonts/Lato-BoldItalic.ttf') format('truetype');
-                        font-weight: 700;
-                        font-style: italic;
-                    }
-                    /* --- WEASYPRINT PDF FIXES --- */
-                    
-                    /* 1. Define the physical page and reserve space for the footer */
-                    @page {
-                        size: A4;
-                        margin-top: 15mm;
-                        margin-bottom: 35mm; /* Forces content to stop before hitting the footer */
-                        margin-left: 15mm;
-                        margin-right: 15mm;
-                    }
-
-                    /* 2. Fix the overlap bug by disabling Flexbox on main structural containers */
-                    body, #resume-pages, .resume-page, section {
-                        display: block !important; 
-                        height: auto !important;
-                    }
-
-                    /* 3. Prevent awkward page breaks cutting elements in half */
-                    .item-block, .list-item, .skills-table, .edu-table tr {
-                        page-break-inside: avoid !important;
-                        break-inside: avoid !important;
-                    }
-
-                    /* 4. Keep titles attached to their content (don't leave a title at the bottom of a page) */
-                    .section-title {
-                        page-break-after: avoid !important;
-                        break-after: avoid !important;
-                        margin-top: 15px !important;
-                    }
-
-                    /* 5. Ensure the footer sits exactly where it should */
-                    .resume-footer {
-                        position: fixed !important;
-                        bottom: 0 !important;
-                        left: 0 !important;
-                        width: 100% !important;
-                    }
                     ${cssText}
-                    
-                    /* Ensure everything actually uses the font */
-                    body { 
-                        background: white; 
-                        margin: 0; 
-                        padding: 0; 
-                        font-family: 'LatoLocal', sans-serif !important; 
-                    }
-                    #resume-pages { padding: 0; gap: 0; }
+                    body { background: white; margin: 0; padding: 0; }
                 </style>
             </head>
             <body>
@@ -344,22 +257,18 @@ async function downloadPDF() {
             </html>
         `;
 
-        // --- STEP 3: GENERATE PDF (30s Timeout since server is now awake) ---
-        const pdfController = new AbortController();
-        const pdfTimeoutId = setTimeout(() => pdfController.abort(), 30000);
-
         const response = await fetch(`${API_URL}/generate-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ html: payloadHTML }),
-            signal: pdfController.signal
+            body: JSON.stringify({ html: payloadHTML })
         });
 
-        clearTimeout(pdfTimeoutId); 
+        // 🚨 THE FALLBACK TRIGGER 🚨
+        if (!response.ok) {
+            throw new Error(`API failed with status: ${response.status}`);
+        }
 
-        if (!response.ok) throw new Error(`Server Error: ${response.status}`);
-
-        // --- STEP 4: DOWNLOAD ---
+        // --- SUCCESS: Download the API PDF ---
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -374,23 +283,22 @@ async function downloadPDF() {
         window.URL.revokeObjectURL(url);
 
     } catch (error) {
-        // ==========================================
-        // 🛡️ THE FALLBACK MECHANISM
-        // ==========================================
-        console.warn("Backend generation failed or timed out. Falling back to local print...", error);
+        // --- FAILURE: Fallback to Local Print ---
+        console.warn("Backend API limit reached or offline. Falling back to local print...", error);
         
-        btn.innerHTML = '⚠️ Server Offline: Using Local Print...';
+        btn.innerHTML = '⚠️ API Limit: Using Local Print...';
         
+        // Brief pause so the user reads the warning, then pop the print dialog
         setTimeout(() => {
             window.print();
-        }, 500);
+        }, 800);
 
     } finally {
+        // Reset the button state
         setTimeout(() => {
             btn.innerHTML = originalText;
             btn.disabled = false;
-        }, 2500);
+        }, 3000);
     }
 }
-
 document.getElementById('generateBtn').addEventListener('click', downloadPDF);

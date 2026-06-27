@@ -1,9 +1,10 @@
-from fastapi import FastAPI, BackgroundTasks, HTTPException, status, Depends
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
+from fastapi import Request, Response
+import httpx
 from contextlib import asynccontextmanager
 
 from backend.database import init_db
@@ -38,34 +39,50 @@ def remove_file(path: str):
     if os.path.exists(path):
         os.remove(path)
 
-from fastapi import Request, Response
-from weasyprint import HTML
-import logging
-
-# ... your other imports and setup ...
-
 @app.post("/api/generate-pdf")
 async def generate_pdf(request: Request):
-    try:
-        data = await request.json()
-        html_content = data.get("html")
-        
-        if not html_content:
-            return Response(content="Missing HTML content", status_code=400)
+    data = await request.json()
+    html_content = data.get("html")
+    
+    if not html_content:
+        raise HTTPException(status_code=400, detail="Missing HTML content")
 
-        # WeasyPrint does all the heavy lifting right here
-        pdf_bytes = HTML(string=html_content).write_pdf()
-        
-        return Response(
-            content=pdf_bytes, 
-            media_type="application/pdf",
-            headers={"Content-Disposition": "attachment; filename=resume.pdf"}
-        )
-        
-    except Exception as e:
-        logging.error(f"PDF Generation failed: {str(e)}")
-        return Response(content="Internal Server Error", status_code=500)
-
+    api_key = os.getenv("PDF_ENDPOINT_KEY") # Store this in your Render environment variables!
+    
+    # We use an async HTTP client to talk to PDF Endpoint
+    async with httpx.AsyncClient() as client:
+        try:
+            pdf_response = await client.post(
+                "https://api.pdfendpoint.com/v1/convert",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {api_key}"
+                },
+                json={
+                    "html": html_content,
+                    "margin_top": "0in",
+                    "margin_bottom": "0in",
+                    "margin_left": "0in",
+                    "margin_right": "0in",
+                    "format": "A4"
+                    # Add any other specific PDFEndpoint parameters here
+                },
+                timeout=15.0
+            )
+            
+            # If we hit the 100 limit, PDF Endpoint will return an error code
+            if not pdf_response.is_success:
+                return Response(content="API Limit Reached or Error", status_code=pdf_response.status_code)
+                
+            # Success! Return the PDF bytes directly to the browser
+            return Response(
+                content=pdf_response.content, 
+                media_type="application/pdf",
+                headers={"Content-Disposition": "attachment; filename=resume.pdf"}
+            )
+            
+        except httpx.RequestError as e:
+            return Response(content="PDF Service Offline", status_code=503)
 
 # ==========================================
 # 🔐 AUTHENTICATION ROUTES

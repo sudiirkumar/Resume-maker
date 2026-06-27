@@ -1,14 +1,12 @@
 # Use an official Python runtime
 FROM python:3.14-slim
 
-# Install WeasyPrint system dependencies AND Font tools
+# Install WeasyPrint system dependencies (Much lighter!)
 RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
     libcairo2 \
     libffi-dev \
-    fontconfig \
-    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
