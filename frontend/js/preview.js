@@ -39,6 +39,7 @@ function updatePreview() {
     headerChunk.innerHTML = `<div class="school-logo">${AppState.logoBase64 ? `<img src="${AppState.logoBase64}" alt="Logo">` : '<div style="color:#ccc; font-size:10px; text-align:center;">Logo</div>'}</div><div class="header-center"><h1 class="header-name" style="font-size: ${nSize}pt;">${escapeHTML(nameText)}</h1><p class="header-info"><span>${escapeHTML(document.getElementById('inp-degree-title').value) || 'Master of Computer Applications'}</span><br>Gender: <span>${escapeHTML(document.getElementById('inp-gender').value) || ''}</span><br>Date of Birth: <span>${escapeHTML(document.getElementById('inp-dob').value) || 'DD/MM/YYYY'}</span><br>E-mail : <span>${escapeHTML(document.getElementById('inp-email').value) || 'abc@example.com'}</span><br>Contact : <span>${escapeHTML(document.getElementById('inp-phone').value) || '+91-XYZ-ABCDEFG'}</span></p></div><div class="profile-pic-container"><img src="${AppState.profilePicBase64}" style="display: ${AppState.profilePicBase64 ? 'block' : 'none'}; width: 100%; height: 100%; object-fit: cover;"></div>`;
     chunks.push({ el: headerChunk, type: 'header' });
     const horizontalRule = document.createElement('div');
+    horizontalRule.className = 'horizontal-rule';
     horizontalRule.innerHTML = '<hr width="100%">';
     chunks.push({ el: horizontalRule, type: 'block' });
     document.querySelectorAll('#resumeForm > section').forEach(sec => {
