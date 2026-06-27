@@ -6,7 +6,6 @@ from pydantic import BaseModel
 import os
 from contextlib import asynccontextmanager
 
-from backend.pdf_service import generate_pdf_from_html
 from backend.database import init_db
 import backend.models as models
 import backend.schemas as schemas
@@ -39,11 +38,33 @@ def remove_file(path: str):
     if os.path.exists(path):
         os.remove(path)
 
+from fastapi import Request, Response
+from weasyprint import HTML
+import logging
+
+# ... your other imports and setup ...
+
 @app.post("/api/generate-pdf")
-async def generate_pdf(request: PDFRequest, background_tasks: BackgroundTasks):
-    pdf_path = await generate_pdf_from_html(request.html)
-    background_tasks.add_task(remove_file, pdf_path)
-    return FileResponse(path=pdf_path, media_type="application/pdf", filename="resume.pdf")
+async def generate_pdf(request: Request):
+    try:
+        data = await request.json()
+        html_content = data.get("html")
+        
+        if not html_content:
+            return Response(content="Missing HTML content", status_code=400)
+
+        # WeasyPrint does all the heavy lifting right here
+        pdf_bytes = HTML(string=html_content).write_pdf()
+        
+        return Response(
+            content=pdf_bytes, 
+            media_type="application/pdf",
+            headers={"Content-Disposition": "attachment; filename=resume.pdf"}
+        )
+        
+    except Exception as e:
+        logging.error(f"PDF Generation failed: {str(e)}")
+        return Response(content="Internal Server Error", status_code=500)
 
 
 # ==========================================
