@@ -16,7 +16,7 @@
 .a4-page {
     width: 210mm;
     height: 297mm;
-    padding: 15mm 15mm 18mm 15mm; /*Top, right, bottom, left*/
+    padding: 15mm 15mm 18mm 15mm; /*Top, right, bottom, left */
     background: white;
     box-shadow: 0 2px 12px rgba(0,0,0,0.18);
     font-family: 'Lato', sans-serif; /* REMOVED Calibri to force Lato */
@@ -26,6 +26,14 @@
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
+}
+
+.a4-page .page-content hr{
+    color:#000;
+    border: 0.4px solid #000;
+    box-shadow: none;
+    margin-inline:-35px -35px; 
+    width: calc(100% + 70px);
 }
 
 /* Wrapper to measure exact content height vs allowed height */
@@ -96,7 +104,7 @@
     justify-content: space-between;
     padding-bottom: 10px;
     margin-bottom: 15px;
-    border-bottom: 1.5px solid #000;
+    /* border-bottom: 1.5px solid #000; */
     gap: 20px;
 }
 
@@ -280,8 +288,8 @@
     color: #777; 
     position: absolute;
     bottom: 8mm; 
-    left: 12mm;   
-    right: 12mm;  
+    left: 20mm;   
+    right: 20mm;  
 }
 .footer-line { 
     flex: 1; 
