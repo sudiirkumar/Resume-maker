@@ -39,6 +39,10 @@ def remove_file(path: str):
     if os.path.exists(path):
         os.remove(path)
 
+from fastapi import Request, Response, HTTPException
+import httpx
+import os
+
 @app.post("/api/generate-pdf")
 async def generate_pdf(request: Request):
     data = await request.json()
@@ -47,12 +51,12 @@ async def generate_pdf(request: Request):
     if not html_content:
         raise HTTPException(status_code=400, detail="Missing HTML content")
 
-    api_key = os.getenv("PDF_ENDPOINT_KEY") # Store this in your Render environment variables!
+    api_key = os.getenv("PDF_ENDPOINT_KEY") 
     
-    # We use an async HTTP client to talk to PDF Endpoint
     async with httpx.AsyncClient() as client:
         try:
-            pdf_response = await client.post(
+            # 1. Ask PDF Endpoint to generate the file
+            api_response = await client.post(
                 "https://api.pdfendpoint.com/v1/convert",
                 headers={
                     "Content-Type": "application/json",
@@ -65,25 +69,34 @@ async def generate_pdf(request: Request):
                     "margin_left": "0in",
                     "margin_right": "0in",
                     "format": "A4"
-                    # Add any other specific PDFEndpoint parameters here
                 },
-                timeout=15.0
+                timeout=15.0 
             )
             
-            # If we hit the 100 limit, PDF Endpoint will return an error code
-            if not pdf_response.is_success:
-                return Response(content="API Limit Reached or Error", status_code=pdf_response.status_code)
+            # If we hit the 100 limit, trigger the frontend fallback
+            if not api_response.is_success:
+                return Response(content="API Limit Reached", status_code=api_response.status_code)
                 
-            # Success! Return the PDF bytes directly to the browser
+            # 2. Extract the URL from their JSON response
+            response_json = api_response.json()
+            pdf_url = response_json.get("data", {}).get("url")
+            
+            if not pdf_url:
+                # If they didn't return a URL, something is wrong on their end
+                return Response(content="Invalid API Response", status_code=500)
+
+            # 3. Fetch the actual PDF binary bytes from that URL
+            pdf_binary_response = await client.get(pdf_url, timeout=15.0)
+            
+            # 4. Send the true binary bytes back to your frontend
             return Response(
-                content=pdf_response.content, 
+                content=pdf_binary_response.content, 
                 media_type="application/pdf",
                 headers={"Content-Disposition": "attachment; filename=resume.pdf"}
             )
             
         except httpx.RequestError as e:
             return Response(content="PDF Service Offline", status_code=503)
-
 # ==========================================
 # 🔐 AUTHENTICATION ROUTES
 # ==========================================
