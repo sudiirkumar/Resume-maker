@@ -28,11 +28,10 @@
     flex-shrink: 0;
 }
 
-.a4-page .page-content .horizontal-rule hr{
-    color:#000;
-    box-shadow: none;
-    border: 0.1px solid #000;
-    margin-inline:-35px -35px; 
+.a4-page .page-content .horizontal-rule hr {
+    border: none; 
+    border-top: 1px solid #000; 
+    margin-inline: -35px -35px; 
     width: calc(100% + 70px);
 }
 
