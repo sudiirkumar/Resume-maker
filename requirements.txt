@@ -6,3 +6,4 @@ beanie
 python-dotenv
 pydantic
 pydantic[email]
+bcrypt
