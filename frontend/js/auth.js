@@ -18,8 +18,15 @@ const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
 const loadResume = document.getElementById('loadResume');
 
-// --- 1. UI Toggle Logic ---
+// Wake up the server as soon as the page loads
+fetch(`${API_BASE_URL}/health`)
+    .catch(() => console.log('Waking up backend...'));
 
+// Keep it awake while they are filling out the form
+setInterval(() => {
+    fetch(`${API_BASE_URL}/health`)
+        .catch(() => {});
+}, 14 * 60 * 1000); // Runs every 14 minutes
 // Open and Close Modal
 if (closeAuthBtn) closeAuthBtn.addEventListener('click', () => authModal.classList.add('hidden'));
 
