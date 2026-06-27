@@ -8,7 +8,7 @@ body { background: #f8fafc; margin: 0; padding: 0; color: #334155; overflow: hid
 
 /* Left Panel (Form) */
 .form-panel { 
-    width: 45%; /* Default Width */
+    width: 40%; /* Default Width */
     padding: 30px 40px; 
     overflow-y: auto; 
     background: #ffffff;
