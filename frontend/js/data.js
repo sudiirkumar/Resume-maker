@@ -235,8 +235,8 @@ function compressImage(file, callback) {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
 
-            // Max dimensions (400px is plenty for a resume thumbnail)
-            const MAX_SIZE = 400; 
+            // Max dimensions (600px is plenty for a resume thumbnail)
+            const MAX_SIZE = 600; 
             let width = img.width;
             let height = img.height;
 
