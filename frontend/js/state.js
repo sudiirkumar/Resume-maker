@@ -17,13 +17,14 @@ function escapeHTML(str) {
 // File Reader Helper
 function handleImageUpload(inputId, stateKey) {
     document.getElementById(inputId).addEventListener('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(evt) { 
-                AppState[stateKey] = evt.target.result; 
+        const file = e.target.files && e.target.files[0];
+        
+        if (file) {
+            // Pass the file to our new compressor instead of reading it directly
+            compressImage(file, function(compressedData) {
+                AppState[stateKey] = compressedData; 
                 if (typeof updatePreview === 'function') updatePreview(); 
-            };
-            reader.readAsDataURL(e.target.files[0]);
+            });
         }
     });
 }

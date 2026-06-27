@@ -220,7 +220,48 @@ document.getElementById('uploadJsonBtn').addEventListener('change', function(e) 
 });
 
 updatePreview();
+// ==========================================
+// 🗜️ IMAGE COMPRESSION UTILITY
+// ==========================================
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
+            // Max dimensions (400px is plenty for a resume thumbnail)
+            const MAX_SIZE = 400; 
+            let width = img.width;
+            let height = img.height;
+
+            // Calculate the new dimensions while keeping aspect ratio
+            if (width > height && width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+            } else if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Export as JPEG at 70% quality (massively reduces file size)
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            
+            callback(compressedBase64);
+        };
+    };
+}
 // ==========================================
 // 🚀 HYBRID PDF GENERATOR (SERVER + FALLBACK)
 // ==========================================
