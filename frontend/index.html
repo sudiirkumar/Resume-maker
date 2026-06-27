@@ -9,7 +9,7 @@
     <!-- (Optional) Bumping ?v=3 to bust cache again just in case -->
     <link rel="stylesheet" href="style.css?v=3" />
     <link rel="stylesheet" href="preview.css?v=3" />
-    
+
     <!-- Vercel Web Analytics -->
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -24,25 +24,25 @@
                 <button id="tabLogin" class="auth-tab active">Log In</button>
                 <button id="tabRegister" class="auth-tab">Sign Up</button>
             </div>
-            
+
             <div class="modal-body">
                 <form id="authForm" onsubmit="return false;">
                     <div class="input-group">
                         <label for="authEmail">Email Address</label>
                         <input type="email" id="authEmail" placeholder="you@example.com" required>
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="authPassword">Password</label>
                         <input type="password" id="authPassword" placeholder="••••••••" required>
                     </div>
-                    
+
                     <div id="authMessage" class="auth-message hidden"></div>
-                    
+
                     <button type="button" id="authSubmitBtn" class="action-btn auth-submit">Log In</button>
                 </form>
             </div>
-            
+
             <button id="closeAuthBtn" class="close-btn">&times;</button>
         </div>
     </div>
@@ -63,7 +63,7 @@
                 </p>
             </section>
 
-            <button id="loadResume"class="secondary-btn" style="display:none;">Load latest resume from cloud</button>
+            <button id="loadResume" class="secondary-btn" style="display:none;">Load latest resume from cloud</button>
 
             <form id="resumeForm">
                 <section>
@@ -132,7 +132,8 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     <div id="achievementsList">
                         <div style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">
-                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();"
+                                class="remove-btn" style="width:auto; padding:0 10px;">X</button>
                         </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addAchievement()">
@@ -160,7 +161,8 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     <div id="interestsList">
                         <div style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Interest" class="int-input" style="flex:1;">
-                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();"
+                                class="remove-btn" style="width:auto; padding:0 10px;">X</button>
                         </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addInterest()">
@@ -171,9 +173,12 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 <section>
                     <h2>Technical Skills and Certifications</h2>
                     <div class="grid-2" style="margin-bottom: 15px;">
-                        <div class="input-group"><label>Programming Languages</label><input type="text" id="inp-skills-prog" placeholder="C, C++, Python"></div>
-                        <div class="input-group"><label>Engineering Software</label><input type="text" id="inp-skills-eng" placeholder="VS Code, Git"></div>
-                        <div class="input-group"><label>Other Software</label><input type="text" id="inp-skills-other"></div>
+                        <div class="input-group"><label>Programming Languages</label><input type="text"
+                                id="inp-skills-prog" placeholder="C, C++, Python"></div>
+                        <div class="input-group"><label>Engineering Software</label><input type="text"
+                                id="inp-skills-eng" placeholder="VS Code, Git"></div>
+                        <div class="input-group"><label>Other Software</label><input type="text" id="inp-skills-other">
+                        </div>
                     </div>
                     <!-- NEW DYNAMIC SKILLS LIST -->
                     <div id="customSkillsList"></div>
@@ -198,8 +203,26 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     <h2>Extracurricular Activities</h2>
                     <div id="extraActivitesList">
                         <div class="list-item extra-item">
-                            <input type="text" placeholder="Category" data-field="category" class="ext-input" />
-                            <input type="text" placeholder="Details" data-field="desc" class="ext-input" />
+                            <input type="text" data-field="category" class="ext-input"
+                                placeholder="Category (e.g. Sport Activities:)" oninput="updatePreview()" />
+
+                            <div class="desc-lines">
+                                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                    <input type="text" data-field="desc" class="ext-input"
+                                        placeholder="Activity details..." style="flex:1;" oninput="updatePreview()" />
+                                </div>
+                            </div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                <button type="button" onclick="addExtraLine(this)"
+                                    style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+
+                                    Add Line</button>
+                                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();"
+                                    class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
+                                    <img src="./close.png" height="16">
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addExtracurricular()">
@@ -207,7 +230,8 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     </button>
                 </section>
                 <div style="display: flex;">
-                    <button id="openAuthBtn" type="button" class="action-btn secondary-btn" style="display: none;">Cloud Sync / Login</button>
+                    <button id="openAuthBtn" type="button" class="action-btn secondary-btn" style="display: none;">Cloud
+                        Sync / Login</button>
                     <button type="button" class="submit-btn" id="generateBtn">
                         Print / Save PDF
                     </button>
@@ -230,7 +254,9 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
     <script src="js/state.js?v=2"></script>
     <script src="js/ui.js?v=2"></script>
     <script src="js/preview.js?v=2"></script>
-    <script src="js/auth.js?v=3"></script>
+    <script src="js/auth.js?v=2"></script>
     <script src="js/data.js?v=2"></script>
+    
 </body>
+
 </html>

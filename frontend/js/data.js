@@ -2,7 +2,18 @@
 const getListVals = (sel, fields) => Array.from(document.querySelectorAll(sel)).map(el => {
     let obj = {}; fields.forEach(f => obj[f] = el.querySelector(`[data-field="${f}"]`)?.value || ''); return obj;
 });
-
+// Minimal helper to add a new line to an extra activity
+function addExtraLine(btn) {
+    const linesContainer = btn.closest('.list-item').querySelector('.desc-lines');
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+    div.innerHTML = `
+        <input type="text" data-field="desc" class="ext-input" placeholder="Activity details..." style="flex:1;" oninput="updatePreview()">
+        <button type="button" onclick="this.parentElement.remove(); updatePreview();" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size: 1.1rem;">&times;</button>
+    `;
+    linesContainer.appendChild(div);
+    if (typeof updatePreview === 'function') updatePreview();
+}
 // 1. Create a global function that JUST builds the JSON object
 function getResumeData() {
     const data = {
@@ -25,7 +36,10 @@ function getResumeData() {
         projects: getListVals('#projectsList .project-item', ['title', 'date', 'desc']),
         interests: Array.from(document.querySelectorAll('.int-input:not(.c-bullet)')).map(i => i.value).filter(v => v),
         pors: getListVals('#porList .por-item', ['role', 'date', 'desc']),
-        extras: getListVals('#extraActivitesList .extra-item', ['category', 'desc']),
+        extras: Array.from(document.querySelectorAll('#extraActivitesList .extra-item')).map(el => ({
+    category: el.querySelector('[data-field="category"]')?.value || '',
+    desc: Array.from(el.querySelectorAll('[data-field="desc"]')).map(i => i.value).filter(v => v)
+})),
         custom_sections: []
     };
 
@@ -45,10 +59,21 @@ function getResumeData() {
 }
 
 // 2. Make the download button use that new function
-function downloadJSON(data) {
+function downloadJSON() {
+    // 1. First, fetch the data using your helper function
+    const data = getResumeData();
+    
+    // 2. Then, convert that data into a downloadable file
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'resume_data.json';
-    a.click(); URL.revokeObjectURL(a.href);
+    const a = document.createElement('a'); 
+    a.href = URL.createObjectURL(blob); 
+    a.download = 'resume_data.json';
+    
+    // 3. Trigger the download
+    document.body.appendChild(a); // Append for better browser compatibility
+    a.click(); 
+    document.body.removeChild(a); // Clean up
+    URL.revokeObjectURL(a.href);
 }
 // ==========================================
 // 🔄 DATA POPULATION HELPER
@@ -93,7 +118,28 @@ function populateFormWithData(data) {
     fillList('projectsList', data.projects, p => `<input type="text" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
     fillList('interestsList', data.interests, int => `<input type="text" class="int-input" value="${escapeHTML(int)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`);
     fillList('porList', data.pors, p => `<input type="text" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
-    fillList('extraActivitesList', data.extras, e => `<input type="text" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}"><input type="text" data-field="desc" class="ext-input" value="${escapeHTML(e.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+    fillList('extraActivitesList', data.extras, e => {
+        // Force desc into an array (handles backwards compatibility with old JSONs)
+        const descArray = Array.isArray(e.desc) ? e.desc : [e.desc || ''];
+        
+        // Build the HTML for all the lines
+        const linesHTML = descArray.map((d, i) => `
+            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <input type="text" data-field="desc" class="ext-input" value="${escapeHTML(d)}" style="flex:1;">
+                ${i > 0 ? `<button type="button" onclick="this.parentElement.remove(); updatePreview();" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size: 1.1rem;">&times;</button>` : ''}
+            </div>
+        `).join('');
+
+        // Return the minimal nested UI structure
+        return `
+            <input type="text" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}">
+            <div class="desc-lines">${linesHTML}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
+                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
+            </div>
+        `;
+    });
 
     // 5. Clean Custom Wrappers & Re-init
     document.querySelectorAll('.add-custom-wrapper, .custom-section').forEach(el => el.remove());

@@ -101,12 +101,27 @@ function updatePreview() {
             }
         }
         else if (sec.querySelector('#extraActivitesList')) {
-            const exts = Array.from(sec.querySelectorAll('#extraActivitesList .extra-item')).filter(i => i.querySelector('[data-field="category"]').value || i.querySelector('[data-field="desc"]').value);
-            if (exts.length) {
-                const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Extracurricular Activities'; chunks.push({ el: t, type: 'title' });
+            // Updated to check if the category OR any of the description lines have text
+            const exts = Array.from(sec.querySelectorAll('#extraActivitesList .extra-item')).filter(i => {
+                const hasCat = i.querySelector('[data-field="category"]').value;
+                const hasDesc = Array.from(i.querySelectorAll('[data-field="desc"]')).some(inp => inp.value.trim() !== '');
+                return hasCat || hasDesc;
+            });
+            
+            if (exts.length > 0) {
+                const title = document.createElement('div'); title.className = 'section-title'; title.textContent = 'Extracurricular Activities'; chunks.push({ el: title, type: 'title' });
                 exts.forEach(i => {
                     const b = document.createElement('div'); b.style.marginBottom = '10px';
-                    b.innerHTML = `<div class="extra-category">${escapeHTML(i.querySelector('[data-field="category"]').value)}</div><ul class="bullet-list" style="margin-bottom:0;"><li>${escapeHTML(i.querySelector('[data-field="desc"]').value)}</li></ul>`;
+                    const c = escapeHTML(i.querySelector('[data-field="category"]').value);
+                    
+                    // Grab ALL description lines, ignore empty ones, and turn them into list items
+                    const descHTML = Array.from(i.querySelectorAll('[data-field="desc"]'))
+                        .map(inp => escapeHTML(inp.value.trim()))
+                        .filter(val => val !== '')
+                        .map(val => `<li>${val}</li>`)
+                        .join('');
+
+                    b.innerHTML = `<div class="extra-category">${c}</div><ul class="bullet-list" style="margin-bottom:0;">${descHTML}</ul>`;
                     chunks.push({ el: b, type: 'block' });
                 });
             }
