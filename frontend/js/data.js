@@ -263,10 +263,30 @@ async function downloadPDF() {
             <html>
             <head>
                 <meta charset="UTF-8">
-                <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
                 <style>
+                    /* Force WeasyPrint to download the raw TTF file */
+                    @font-face {
+                        font-family: 'Lato';
+                        font-style: normal;
+                        font-weight: 400;
+                        src: url('https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTFMjT9T6F2w.ttf') format('truetype');
+                    }
+                    @font-face {
+                        font-family: 'Lato';
+                        font-style: normal;
+                        font-weight: 700;
+                        src: url('https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTFMjQKUaHW7.ttf') format('truetype');
+                    }
+
                     ${cssText}
-                    body { background: white; margin: 0; padding: 0; }
+                    
+                    /* Ensure everything actually uses the font */
+                    body { 
+                        background: white; 
+                        margin: 0; 
+                        padding: 0; 
+                        font-family: 'Lato', sans-serif !important; 
+                    }
                     #resume-pages { padding: 0; gap: 0; }
                 </style>
             </head>
