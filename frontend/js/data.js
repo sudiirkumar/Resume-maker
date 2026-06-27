@@ -266,18 +266,66 @@ async function downloadPDF() {
                 <style>
                     /* Force WeasyPrint to download the raw TTF file */
                     @font-face {
-                        font-family: 'Lato';
-                        font-style: normal;
+                        font-family: 'LatoLocal';
+                        src: url('./fonts/Lato-Regular.ttf') format('truetype');
                         font-weight: 400;
-                        src: url('https://fonts.gstatic.com/s/lato/v24/S6uyw4BMUTFMjT9T6F2w.ttf') format('truetype');
+                        font-style: normal;
                     }
                     @font-face {
-                        font-family: 'Lato';
-                        font-style: normal;
+                        font-family: 'LatoLocal';
+                        src: url('./fonts/Lato-Bold.ttf') format('truetype');
                         font-weight: 700;
-                        src: url('https://fonts.gstatic.com/s/lato/v24/S6u9w4BMUTFMjQKUaHW7.ttf') format('truetype');
+                        font-style: normal;
+                    }
+                    @font-face {
+                        font-family: 'LatoLocal';
+                        src: url('./fonts/Lato-Italic.ttf') format('truetype');
+                        font-weight: 400;
+                        font-style: italic;
+                    }
+                    @font-face {
+                        font-family: 'LatoLocal';
+                        src: url('./fonts/Lato-BoldItalic.ttf') format('truetype');
+                        font-weight: 700;
+                        font-style: italic;
+                    }
+                    /* --- WEASYPRINT PDF FIXES --- */
+                    
+                    /* 1. Define the physical page and reserve space for the footer */
+                    @page {
+                        size: A4;
+                        margin-top: 15mm;
+                        margin-bottom: 35mm; /* Forces content to stop before hitting the footer */
+                        margin-left: 15mm;
+                        margin-right: 15mm;
                     }
 
+                    /* 2. Fix the overlap bug by disabling Flexbox on main structural containers */
+                    body, #resume-pages, .resume-page, section {
+                        display: block !important; 
+                        height: auto !important;
+                    }
+
+                    /* 3. Prevent awkward page breaks cutting elements in half */
+                    .item-block, .list-item, .skills-table, .edu-table tr {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+
+                    /* 4. Keep titles attached to their content (don't leave a title at the bottom of a page) */
+                    .section-title {
+                        page-break-after: avoid !important;
+                        break-after: avoid !important;
+                        margin-top: 15px !important;
+                    }
+
+                    /* 5. Ensure the footer sits exactly where it should */
+                    .resume-footer {
+                        position: fixed !important;
+                        bottom: 0 !important;
+                        left: 0 !important;
+                        width: 100% !important;
+                    }
                     ${cssText}
                     
                     /* Ensure everything actually uses the font */
@@ -285,7 +333,7 @@ async function downloadPDF() {
                         background: white; 
                         margin: 0; 
                         padding: 0; 
-                        font-family: 'Lato', sans-serif !important; 
+                        font-family: 'LatoLocal', sans-serif !important; 
                     }
                     #resume-pages { padding: 0; gap: 0; }
                 </style>
