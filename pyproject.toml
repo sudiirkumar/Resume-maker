@@ -13,7 +13,8 @@ dependencies = [
     "bcrypt",
     "python-jose[cryptography]",
     "python-dotenv",
-    "weasyprint"
+    "weasyprint",
+    "pydantic[email]"
 ]
 
 [tool.vercel]
