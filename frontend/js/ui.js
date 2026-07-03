@@ -7,6 +7,7 @@ console.log("Loaded ui.js successfully");
 const helpModal = document.getElementById('helpModal');
 const openHelpBtn = document.getElementById('openHelpBtn');
 const closeHelpBtn = document.getElementById('closeHelpBtn');
+const helpSeenCookie = 'resume_help_seen=1';
 
 function openHelpModal() {
     if (helpModal) helpModal.classList.remove('hidden');
@@ -16,19 +17,39 @@ function closeHelpModal() {
     if (helpModal) helpModal.classList.add('hidden');
 }
 
+function hasSeenHelp() {
+    return document.cookie.split('; ').some(cookie => cookie === helpSeenCookie);
+}
+
+function markHelpSeen() {
+    document.cookie = `${helpSeenCookie}; max-age=31536000; path=/`;
+}
+
 if (openHelpBtn) openHelpBtn.addEventListener('click', openHelpModal);
-if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelpModal);
+if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => {
+    markHelpSeen();
+    closeHelpModal();
+});
 if (helpModal) {
     helpModal.addEventListener('click', (event) => {
-        if (event.target === helpModal) closeHelpModal();
+        if (event.target === helpModal) {
+            markHelpSeen();
+            closeHelpModal();
+        }
     });
 }
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && helpModal && !helpModal.classList.contains('hidden')) {
+        markHelpSeen();
         closeHelpModal();
     }
 });
+
+if (helpModal && !hasSeenHelp()) {
+    openHelpModal();
+    markHelpSeen();
+}
 
 // ---- Compacted Form Handlers ----
 const appendHTML = (id, html, classes = '') => {
