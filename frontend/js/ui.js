@@ -3,6 +3,33 @@ handleImageUpload('inp-photo', 'profilePicBase64');
 handleImageUpload('inp-logo', 'logoBase64');
 document.getElementById('resumeForm').addEventListener('input', () => updatePreview());
 console.log("Loaded ui.js successfully");
+
+const helpModal = document.getElementById('helpModal');
+const openHelpBtn = document.getElementById('openHelpBtn');
+const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+function openHelpModal() {
+    if (helpModal) helpModal.classList.remove('hidden');
+}
+
+function closeHelpModal() {
+    if (helpModal) helpModal.classList.add('hidden');
+}
+
+if (openHelpBtn) openHelpBtn.addEventListener('click', openHelpModal);
+if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelpModal);
+if (helpModal) {
+    helpModal.addEventListener('click', (event) => {
+        if (event.target === helpModal) closeHelpModal();
+    });
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && helpModal && !helpModal.classList.contains('hidden')) {
+        closeHelpModal();
+    }
+});
+
 // ---- Compacted Form Handlers ----
 const appendHTML = (id, html, classes = '') => {
     const div = document.createElement('div');

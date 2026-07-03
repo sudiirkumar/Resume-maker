@@ -46,8 +46,62 @@
             <button id="closeAuthBtn" class="close-btn">&times;</button>
         </div>
     </div>
+    <div id="helpModal" class="modal-overlay hidden">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header help-modal-header">
+                <div>
+                    <h2 class="help-modal-title">How to use this app</h2>
+                    <p class="help-modal-subtitle">Quick instructions for offline and cloud workflows</p>
+                </div>
+            </div>
+
+            <div class="modal-body help-modal-body">
+                <div class="help-section">
+                    <h3>Quick start</h3>
+                    <ol>
+                        <li>Fill in your details in the left panel. The preview on the right updates as you type.</li>
+                        <li>Use <strong>+ Add</strong> buttons to add more education, projects, skills, and other sections.</li>
+                        <li>When ready, use <strong>Print / Save PDF</strong> to download the resume as a PDF.</li>
+                    </ol>
+                </div>
+
+                <div class="help-section">
+                    <h3>Offline use with JSON</h3>
+                    <p>You can use the app completely offline by saving your form data as JSON and restoring it later.</p>
+                    <ul>
+                        <li><strong>Download JSON</strong> creates a backup file of everything in the form.</li>
+                        <li><strong>Upload JSON</strong> lets you bring back a previously saved file and continue editing.</li>
+                    </ul>
+                    <p><strong>Example:</strong> finish your resume on one laptop, download the JSON file, and upload it later on another device to continue from the same data.</p>
+                </div>
+
+                <div class="help-section">
+                    <h3>Cloud save</h3>
+                    <p>If you want your resume stored online, use <strong>Cloud Sync / Login</strong> to sign in, then save your data to the cloud.</p>
+                    <ul>
+                        <li><strong>Sign Up</strong> creates your account.</li>
+                        <li><strong>Log In</strong> unlocks cloud sync and loading your saved resume.</li>
+                        <li><strong>Save to Cloud</strong> keeps your latest data online for easy access from anywhere.</li>
+                    </ul>
+                    <p><strong>Example:</strong> make changes at work, save to the cloud, and later load the same resume on your home computer without retyping everything.</p>
+                </div>
+
+                <div class="help-section help-tip">
+                    <h3>Helpful tips</h3>
+                    <ul>
+                        <li>Use real, consistent dates and spellings for the best final PDF.</li>
+                        <li>Upload images only when needed, since large files can slow things down.</li>
+                        <li>Keep a JSON backup before making big edits so you can roll back quickly.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button id="closeHelpBtn" class="close-btn" aria-label="Close help">&times;</button>
+        </div>
+    </div>
     <div class="app-layout">
         <div class="form-panel" id="leftPanel">
+            <button id="openHelpBtn" type="button" class="help-btn" aria-label="Open help instructions">?</button>
             <h1>Resume Generator</h1>
 
             <section style="
