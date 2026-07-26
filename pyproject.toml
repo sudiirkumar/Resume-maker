@@ -8,15 +8,14 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "pydantic",
-    "motor",
     "beanie",
+    "python-dotenv",
     "bcrypt",
     "python-jose[cryptography]",
-    "python-dotenv",
-    "weasyprint",
     "pydantic[email]",
-    "bcrypt",
-    "python-jose[cryptography]"
+    "python-multipart",
+    "httpx",
+    "pymongo"
 ]
 
 [tool.vercel]

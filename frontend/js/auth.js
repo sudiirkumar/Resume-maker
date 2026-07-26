@@ -4,6 +4,7 @@
 
 // Change this to your live backend URL when deploying!
 const API_BASE_URL = 'https://resume-maker-ih3k.onrender.com/api';
+// const API_BASE_URL = 'http://0.0.0.0:8000/api';
 let isLoginMode = true;
 
 // DOM Elements
@@ -17,15 +18,69 @@ const authMessage = document.getElementById('authMessage');
 const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
 const loadResume = document.getElementById('loadResume');
+const cloudActionRow = document.getElementById('cloudActionRow');
+const logoutBtn = document.getElementById('logoutBtn');
+
+const backendState = {
+    online: false,
+    dbReady: false,
+    aiRewriteReady: false,
+};
+
+function broadcastBackendState(nextState) {
+    backendState.online = Boolean(nextState.online);
+    backendState.dbReady = Boolean(nextState.dbReady);
+    backendState.aiRewriteReady = Boolean(nextState.aiRewriteReady);
+
+    window.ResumeBackendState = { ...backendState };
+    window.dispatchEvent(new CustomEvent('resume-backend-status', {
+        detail: { ...backendState },
+    }));
+}
+
+async function refreshBackendState() {
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+        const response = await fetch(`${API_BASE_URL}/health`, {
+            method: 'GET',
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+            const data = await response.json();
+            broadcastBackendState({
+                online: true,
+                dbReady: Boolean(data.db_ready),
+                aiRewriteReady: Boolean(data.ai_rewrite_ready),
+            });
+
+            syncCloudActionVisibility();
+
+            return true;
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.warn('Backend health check timed out (Server might be asleep). Cloud features disabled.');
+        } else {
+            console.warn('Backend is currently offline or unreachable. Cloud features disabled.');
+        }
+    }
+
+    broadcastBackendState({ online: false, dbReady: false, aiRewriteReady: false });
+    syncCloudActionVisibility();
+    return false;
+}
 
 // Wake up the server as soon as the page loads
-fetch(`${API_BASE_URL}/health`)
-    .catch(() => console.log('Waking up backend...'));
+refreshBackendState().catch(() => console.log('Waking up backend...'));
 
 // Keep it awake while they are filling out the form
 setInterval(() => {
-    fetch(`${API_BASE_URL}/health`)
-        .catch(() => {});
+    refreshBackendState().catch(() => {});
 }, 14 * 60 * 1000); // Runs every 14 minutes
 // Open and Close Modal
 if (closeAuthBtn) closeAuthBtn.addEventListener('click', () => authModal.classList.add('hidden'));
@@ -57,47 +112,36 @@ function hideMessage() {
     authMessage.className = 'auth-message hidden';
 }
 
-// --- 2. Smart Cloud Sync Logic ---
+function hasStoredToken() {
+    return Boolean(localStorage.getItem('resume_jwt_token'));
+}
 
-// Check login state when the page loads
-// Check login state and backend health when the page loads
-// Check login state and backend health when the page loads
+function syncCloudActionVisibility() {
+    const canShowCloudActions = backendState.dbReady;
+    const isLoggedIn = hasStoredToken();
+
+    if (openAuthBtn) {
+        openAuthBtn.style.display = canShowCloudActions ? 'inline-block' : 'none';
+        openAuthBtn.textContent = isLoggedIn ? '☁️ Save to Cloud' : 'Cloud Sync / Login';
+    }
+
+    if (cloudActionRow) {
+        cloudActionRow.style.display = canShowCloudActions && isLoggedIn ? 'flex' : 'none';
+    }
+
+    if (loadResume) {
+        loadResume.style.display = canShowCloudActions && isLoggedIn ? 'inline-block' : 'none';
+    }
+
+    if (logoutBtn) {
+        logoutBtn.style.display = canShowCloudActions && isLoggedIn ? 'inline-block' : 'none';
+    }
+}
+
+// --- 2. Smart Cloud Sync Logic ---
 document.addEventListener('DOMContentLoaded', async () => {
     if (!openAuthBtn) return;
-
-    try {
-        // 1. Ping the backend to see if it is alive
-        const controller = new AbortController();
-        
-        // BUMP TIMEOUT TO 60 SECONDS: 
-        // This gives Render's free tier enough time to wake up from a cold start!
-        const timeoutId = setTimeout(() => controller.abort(), 60000); 
-
-        const response = await fetch(`${API_BASE_URL}/health`, { 
-            method: 'GET',
-            signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-            // 2. The backend is ALIVE! Reveal the button.
-            openAuthBtn.style.display = 'inline-block'; 
-
-            // 3. Check if they are already logged in
-            if (localStorage.getItem('resume_jwt_token')) {
-                loadResume.style.display = 'inline-block';
-                openAuthBtn.textContent = '☁️ Save to Cloud';
-            }
-        }
-    } catch (error) {
-        // 4. The backend is DEAD or unreachable. 
-        if (error.name === 'AbortError') {
-            console.warn("Backend health check timed out (Server might be asleep). Cloud features disabled.");
-        } else {
-            console.warn("Backend is currently offline or unreachable. Cloud features disabled.");
-        }
-    }
+    syncCloudActionVisibility();
 });
 
 // The Smart Button: Opens modal if logged out, saves data if logged in
@@ -108,6 +152,37 @@ if (openAuthBtn) {
             saveResumeToCloud(token);
         } else {
             authModal.classList.remove('hidden');
+        }
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        const token = localStorage.getItem('resume_jwt_token');
+        if (!token) {
+            syncCloudActionVisibility();
+            return;
+        }
+
+        logoutBtn.disabled = true;
+        const originalText = logoutBtn.textContent;
+        logoutBtn.textContent = 'Logging out...';
+
+        try {
+            await fetch(`${API_BASE_URL}/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+        } catch (error) {
+            console.warn('Logout request could not reach the backend, clearing the local session anyway.');
+        } finally {
+            localStorage.removeItem('resume_jwt_token');
+            showMessage('Logged out successfully.', 'success');
+            syncCloudActionVisibility();
+            logoutBtn.disabled = false;
+            logoutBtn.textContent = originalText;
         }
     });
 }
@@ -134,10 +209,11 @@ async function saveResumeToCloud(token) {
         // 3. Handle Token Expiration
         if (response.status === 401) {
             localStorage.removeItem('resume_jwt_token');
-            openAuthBtn.innerHTML = '⚠️ Session Expired';
+            syncCloudActionVisibility();
+            if (openAuthBtn) openAuthBtn.innerHTML = '⚠️ Session Expired';
             setTimeout(() => {
                 authModal.classList.remove('hidden');
-                openAuthBtn.innerHTML = 'Cloud Sync / Login';
+                if (openAuthBtn) openAuthBtn.innerHTML = 'Cloud Sync / Login';
             }, 2000);
             return;
         }
@@ -188,7 +264,10 @@ authSubmitBtn.addEventListener('click', async () => {
                 body: formData
             });
 
-            if (!response.ok) throw new Error('Invalid email or password');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || 'Invalid email or password');
+            }
 
             const data = await response.json();
             
@@ -197,8 +276,7 @@ authSubmitBtn.addEventListener('click', async () => {
             showMessage('Logged in successfully!', 'success');
             
             // Update UI and close modal
-            if(openAuthBtn) openAuthBtn.textContent = '☁️ Save to Cloud';
-            loadResume.style.display = 'inline-block';
+            syncCloudActionVisibility();
             setTimeout(() => authModal.classList.add('hidden'), 1000);  
 
 
@@ -211,8 +289,11 @@ authSubmitBtn.addEventListener('click', async () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Registration failed');
+                const errorData = await response.json().catch(() => ({}));
+                const detail = Array.isArray(errorData.detail)
+                    ? errorData.detail.map((item) => item.msg || item.message || JSON.stringify(item)).join(' ')
+                    : errorData.detail;
+                throw new Error(detail || 'Registration failed');
             }
 
             showMessage('Account created! Please log in.', 'success');

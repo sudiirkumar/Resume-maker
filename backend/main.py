@@ -1,25 +1,28 @@
-from fastapi import FastAPI, HTTPException, status, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 import os
-from fastapi import Request, Response
-import httpx
 from contextlib import asynccontextmanager
 
-from backend.database import init_db
+import httpx
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
 import backend.models as models
 import backend.schemas as schemas
-from backend.auth import get_password_hash, verify_password, create_access_token
-from backend.auth import get_current_user
-from fastapi.security import OAuth2PasswordRequestForm
+from backend.auth import create_access_token, get_current_user, get_password_hash, verify_password
+from backend.database import init_db, is_db_ready
+from backend.llm import ai_rewrite_ready, rewrite_resume_text, review_resume_text
 
 # --- LIFESPAN MANAGER ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("⏳ Connecting to MongoDB Atlas...")
-    await init_db()
-    print("✅ Connected to MongoDB Atlas!")
+    db_ready = await init_db()
+    if db_ready:
+        print("✅ Connected to MongoDB Atlas!")
+    else:
+        print("⚠️ MongoDB unavailable; starting backend without cloud features.")
     yield
 
 app = FastAPI(title="Resume Generator API", lifespan=lifespan)
@@ -39,9 +42,15 @@ def remove_file(path: str):
     if os.path.exists(path):
         os.remove(path)
 
-from fastapi import Request, Response, HTTPException
-import httpx
-import os
+
+@app.get("/api/health")
+async def health_check():
+    """A simple ping to check if the backend is online."""
+    return {
+        "status": "online",
+        "db_ready": is_db_ready(),
+        "ai_rewrite_ready": ai_rewrite_ready(),
+    }
 
 @app.post("/api/generate-pdf")
 async def generate_pdf(request: Request):
@@ -97,6 +106,28 @@ async def generate_pdf(request: Request):
             
         except httpx.RequestError as e:
             return Response(content="PDF Service Offline", status_code=503)
+
+
+@app.post("/api/ai/rewrite", response_model=schemas.RewriteResponse)
+async def rewrite_resume_section(payload: schemas.RewriteRequest):
+    rewritten_text = await rewrite_resume_text(payload.model_dump())
+    return {
+        "rewritten_text": rewritten_text,
+        "provider": "groq",
+        "model": os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+    }
+
+
+@app.post("/api/ai/review-resume", response_model=schemas.ResumeReviewResponse)
+async def review_resume(payload: schemas.ResumeReviewRequest):
+    review_text = await review_resume_text(payload.model_dump())
+    return {
+        "review_text": review_text,
+        "provider": "groq",
+        "model": os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+        "review_type": payload.review_type,
+    }
+
 # ==========================================
 # 🔐 AUTHENTICATION ROUTES
 # ==========================================
@@ -141,6 +172,17 @@ async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
     
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+@app.post("/api/logout")
+async def logout_user(current_user: models.User = Depends(get_current_user)):
+    """Acknowledge logout on the server side.
+
+    JWT tokens are stateless, so logout is handled on the client by removing
+    the stored token. This endpoint exists to keep the API flow explicit and
+    to allow future token revocation/blacklisting if needed.
+    """
+    return {"message": "Logged out successfully", "user_id": str(current_user.id)}
+
 # ==========================================
 # 💾 SECURE DATA ROUTES
 # ==========================================
@@ -170,11 +212,6 @@ async def save_resume(
         await new_resume.insert()
         return {"message": "Resume saved successfully"}
     
-@app.get("/api/health")
-async def health_check():
-    """A simple ping to check if the backend is online."""
-    return {"status": "online"}
-
 @app.get("/api/resume", response_model=schemas.ResumeResponse)
 async def load_resume(current_user: models.User = Depends(get_current_user)):
     """Fetches the logged-in user's resume data."""

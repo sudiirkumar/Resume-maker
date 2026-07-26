@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-motor
 beanie
 python-dotenv
 pydantic
@@ -9,3 +8,4 @@ bcrypt
 python-jose[cryptography]
 python-multipart
 httpx
+pymongo

@@ -117,7 +117,10 @@
                 </p>
             </section>
 
-            <button id="loadResume" class="secondary-btn" style="display:none;">Load latest resume from cloud</button>
+            <div class="cloud-action-row" id="cloudActionRow" style="display:none;">
+                <button id="loadResume" class="secondary-btn cloud-action-btn" type="button">Load latest resume from cloud</button>
+                <button id="logoutBtn" class="cloud-logout-btn" type="button">Logout</button>
+            </div>
 
             <form id="resumeForm">
                 <section>
@@ -295,6 +298,20 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 </button>
             </form>
             <div id="status"></div>
+            <button id="resumeAiFab" type="button" class="resume-ai-fab" aria-label="Resume AI tools" title="Resume AI tools">
+                <span class="resume-ai-fab-icon">✦</span>
+                <span class="resume-ai-fab-text">Resume AI</span>
+            </button>
+            <div id="resumeAiPopover" class="resume-ai-popover hidden" aria-label="Resume AI options">
+                <div class="ai-popover-title">Resume AI</div>
+                <div class="ai-popover-subtitle">Whole-resume ATS suggestions</div>
+                <div class="ai-popover-actions">
+                    <button id="resumeAiReviewBtn" type="button" class="ai-popover-btn">Review Resume</button>
+                    <button id="resumeAiKeywordBtn" type="button" class="ai-popover-btn">ATS Keyword Scan</button>
+                    <button id="resumeAiImpactBtn" type="button" class="ai-popover-btn">Impact & Metrics Check</button>
+                    <button id="resumeAiConciseBtn" type="button" class="ai-popover-btn">Conciseness Check</button>
+                </div>
+            </div>
         </div>
 
         <div class="resizer" id="dragMe">
@@ -305,11 +322,88 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
             <div id="resume-pages"></div>
         </div>
     </div>
+
+    <button id="aiRewriteFab" type="button" class="ai-rewrite-fab hidden" aria-label="AI rewrite options" title="AI rewrite options">
+        ✦
+    </button>
+
+    <div id="aiRewritePopover" class="ai-rewrite-popover hidden" data-mode="actions" aria-label="AI rewrite menu">
+        <div class="ai-popover-title">AI rewrite</div>
+        <div class="ai-popover-actions">
+            <button id="aiProofreadBtn" type="button" class="ai-popover-btn">Proofread</button>
+            <button id="aiProfessionalBtn" type="button" class="ai-popover-btn">Professional</button>
+            <button id="aiSummaryBtn" type="button" class="ai-popover-btn">Summaries</button>
+        </div>
+        <div id="aiSummaryPanel" class="ai-summary-panel hidden">
+            <label for="aiSummaryWordCount">Approx. words</label>
+            <input id="aiSummaryWordCount" type="number" min="1" step="1" placeholder="40" />
+            <div class="ai-summary-actions">
+                <button id="aiBackBtn" type="button" class="ai-secondary-btn">Back</button>
+                <button id="aiSummaryGenerateBtn" type="button" class="ai-primary-btn">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="aiLoadingOverlay" class="modal-overlay hidden ai-loading-overlay">
+        <div class="modal-content ai-loading-content">
+            <div class="ai-spinner" aria-hidden="true"></div>
+            <h2>AI is rewriting this field</h2>
+            <p id="aiLoadingText">Please wait while the model refines your text.</p>
+        </div>
+    </div>
+
+    <div id="aiCompareModal" class="modal-overlay hidden">
+        <div class="modal-content ai-compare-content">
+            <div class="modal-header ai-compare-header">
+                <div>
+                    <h2 id="aiCompareTitle" class="ai-compare-title">Rewrite preview</h2>
+                    <p class="ai-compare-subtitle">Review the difference before applying it.</p>
+                </div>
+            </div>
+            <div class="modal-body ai-compare-body">
+                <div class="ai-compare-grid">
+                    <div class="ai-compare-card">
+                        <h3>Previous</h3>
+                        <pre id="aiCompareBefore"></pre>
+                    </div>
+                    <div class="ai-compare-card ai-compare-card-new">
+                        <h3>New</h3>
+                        <pre id="aiCompareAfter"></pre>
+                    </div>
+                </div>
+                <div class="ai-compare-actions">
+                    <button id="aiRejectBtn" type="button" class="ai-secondary-btn">Reject</button>
+                    <button id="aiAcceptBtn" type="button" class="ai-primary-btn">Accept and Apply</button>
+                </div>
+            </div>
+            <button id="aiCloseCompareBtn" type="button" class="close-btn" aria-label="Close AI comparison">&times;</button>
+        </div>
+    </div>
+
+    <div id="resumeAiModal" class="modal-overlay hidden">
+        <div class="modal-content resume-ai-modal-content">
+            <div class="modal-header resume-ai-modal-header">
+                <div>
+                    <h2 id="resumeAiModalTitle" class="resume-ai-modal-title">Resume Review</h2>
+                    <p class="resume-ai-modal-subtitle">ATS-focused suggestions in plain text only.</p>
+                </div>
+            </div>
+            <div class="modal-body resume-ai-modal-body">
+                <pre id="resumeAiModalText" class="resume-ai-modal-text"></pre>
+                <div class="resume-ai-modal-actions">
+                    <button id="resumeAiCopyBtn" type="button" class="ai-secondary-btn">Copy text</button>
+                    <button id="resumeAiCloseBtn" type="button" class="ai-primary-btn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/state.js?v=2"></script>
     <script src="js/ui.js?v=2"></script>
     <script src="js/preview.js?v=2"></script>
     <script src="js/auth.js?v=2"></script>
     <script src="js/data.js?v=2"></script>
+    <script src="js/ai.js?v=2"></script>
     
 </body>
 

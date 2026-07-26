@@ -7,6 +7,7 @@ This project is a simple web application designed to generate pixel-perfect resu
 - FastAPI (Python) backend to process data
 - `docxtpl` uses your `.docx` file directly as a Jinja2 template (preserves fonts, lines, margins!).
 - `LibreOffice` headless conversion to generate the final PDF without requiring MS Word. This allows safe deployment to an AWS VM (Linux).
+- AI rewrite/proofread support for long-form resume fields using Groq.
 
 ## Installation & Running
 
@@ -19,6 +20,20 @@ This project is a simple web application designed to generate pixel-perfect resu
    python run.py
    ```
 3. Open your browser and go to: `http://localhost:8000/frontend/index.html`
+
+## Environment Variables
+
+Create or edit the root `.env` file with your local values:
+
+- `MONGODB_URI`
+- `JWT_SECRET_KEY`
+- `PDF_ENDPOINT_KEY`
+- `GROQ_API_KEY`
+- `GROQ_MODEL`
+- `GROQ_API_URL`
+- `AI_SUMMARY_DEFAULT_WORDS`
+
+The AI star button only appears when the backend health check succeeds and the Groq API key is configured.
 
 ## IMPORTANT: Setting up your Template
 
