@@ -46,7 +46,7 @@ function updatePreview() {
         if (sec.querySelector('#inp-name')) return; 
 
         if (sec.querySelector('#educationList')) {
-            const items = Array.from(sec.querySelectorAll('#educationList .list-item'));
+            const items = Array.from(sec.querySelectorAll('#educationList .list-item')).filter(i => i.dataset.hidden !== 'true');
             if (items.some(i => i.querySelector('[data-field="year"]').value)) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Educational Qualification'; chunks.push({ el: t, type: 'title' });
                 const table = document.createElement('table'); table.className = 'edu-table'; let tbody = '';
@@ -55,14 +55,14 @@ function updatePreview() {
             }
         } 
         else if (sec.querySelector('#achievementsList')) {
-            const achs = Array.from(sec.querySelectorAll('.ach-input')).map(i => escapeHTML(i.value)).filter(v => v);
+            const achs = Array.from(sec.querySelectorAll('#achievementsList .list-item:not([data-hidden="true"]) .ach-input')).map(i => escapeHTML(i.value)).filter(v => v);
             if (achs.length) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Academic Achievements'; chunks.push({ el: t, type: 'title' });
                 const ul = document.createElement('ul'); ul.className = 'bullet-list'; achs.forEach(a => { ul.innerHTML += `<li>${a}</li>`; }); chunks.push({ el: ul, type: 'block' });
             }
         }
         else if (sec.querySelector('#projectsList')) {
-            const projs = Array.from(sec.querySelectorAll('#projectsList .project-item')).filter(i => i.querySelector('[data-field="title"]').value);
+            const projs = Array.from(sec.querySelectorAll('#projectsList .project-item')).filter(i => i.dataset.hidden !== 'true' && i.querySelector('[data-field="title"]').value);
             if (projs.length) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Other Projects'; chunks.push({ el: t, type: 'title' });
                 projs.forEach(i => {
@@ -73,7 +73,7 @@ function updatePreview() {
             }
         }
         else if (sec.querySelector('#interestsList')) {
-            const ints = Array.from(sec.querySelectorAll('.int-input')).map(i => escapeHTML(i.value)).filter(v => v);
+            const ints = Array.from(sec.querySelectorAll('#interestsList .list-item:not([data-hidden="true"]) .int-input')).map(i => escapeHTML(i.value)).filter(v => v);
             if (ints.length) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Areas of Interest'; chunks.push({ el: t, type: 'title' });
                 const ul = document.createElement('ul'); ul.className = 'bullet-list'; ints.forEach(i => { ul.innerHTML += `<li>${i}</li>`; }); chunks.push({ el: ul, type: 'block' });
@@ -81,7 +81,7 @@ function updatePreview() {
         }
         else if (sec.querySelector('#inp-skills-prog')) {
             const pS = escapeHTML(sec.querySelector('#inp-skills-prog').value), eS = escapeHTML(sec.querySelector('#inp-skills-eng').value), oS = escapeHTML(sec.querySelector('#inp-skills-other').value);
-            const cItems = Array.from(sec.querySelectorAll('.custom-skill-item')).filter(i => i.querySelector('.skill-cat-input').value || i.querySelector('.skill-val-input').value);
+            const cItems = Array.from(sec.querySelectorAll('.custom-skill-item')).filter(i => i.dataset.hidden !== 'true' && (i.querySelector('.skill-cat-input').value || i.querySelector('.skill-val-input').value));
             if (pS || eS || oS || cItems.length) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Technical Skills and Certifications'; chunks.push({ el: t, type: 'title' });
                 const table = document.createElement('table'); table.className = 'skills-table'; let html = '';
@@ -93,7 +93,7 @@ function updatePreview() {
             }
         }
         else if (sec.querySelector('#porList')) {
-            const pors = Array.from(sec.querySelectorAll('#porList .por-item')).filter(i => i.querySelector('[data-field="role"]').value);
+            const pors = Array.from(sec.querySelectorAll('#porList .por-item')).filter(i => i.dataset.hidden !== 'true' && i.querySelector('[data-field="role"]').value);
             if (pors.length) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Positions of Responsibility'; chunks.push({ el: t, type: 'title' });
                 pors.forEach(i => {
@@ -106,6 +106,7 @@ function updatePreview() {
         else if (sec.querySelector('#extraActivitesList')) {
             // Updated to check if the category OR any of the description lines have text
             const exts = Array.from(sec.querySelectorAll('#extraActivitesList .extra-item')).filter(i => {
+                if (i.dataset.hidden === 'true') return false;
                 const hasCat = i.querySelector('[data-field="category"]').value;
                 const hasDesc = Array.from(i.querySelectorAll('[data-field="desc"]')).some(inp => inp.value.trim() !== '');
                 return hasCat || hasDesc;
@@ -134,7 +135,7 @@ function updatePreview() {
             const type = sec.dataset.type;
             
             if (type === 'type1') {
-                const items = Array.from(sec.querySelectorAll('.custom-item-type1'));
+                const items = Array.from(sec.querySelectorAll('.custom-item-type1')).filter(i => i.dataset.hidden !== 'true');
                 if (items.length) {
                     chunks.push({ el: t, type: 'title' });
                     items.forEach(i => {
@@ -144,14 +145,14 @@ function updatePreview() {
                     });
                 }
             } else if (type === 'type2') {
-                const inputs = Array.from(sec.querySelectorAll('.c-bullet')).filter(i => i.value);
+                const inputs = Array.from(sec.querySelectorAll('.list-item:not([data-hidden="true"]) .c-bullet')).filter(i => i.value);
                 if (inputs.length) {
                     chunks.push({ el: t, type: 'title' });
                     const ul = document.createElement('ul'); ul.className = 'bullet-list'; inputs.forEach(i => ul.innerHTML += `<li>${escapeHTML(i.value)}</li>`);
                     chunks.push({ el: ul, type: 'block' });
                 }
             } else if (type === 'type3') {
-                const items = Array.from(sec.querySelectorAll('.custom-item-type3'));
+                const items = Array.from(sec.querySelectorAll('.custom-item-type3')).filter(i => i.dataset.hidden !== 'true');
                 if (items.length) {
                     chunks.push({ el: t, type: 'title' });
                     items.forEach(i => {

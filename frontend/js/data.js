@@ -30,15 +30,36 @@ function getResumeData() {
         skills_engineering: document.getElementById('inp-skills-eng').value, 
         skills_other: document.getElementById('inp-skills-other').value,
         
-        custom_skills: Array.from(document.querySelectorAll('.custom-skill-item')).map(i => ({ cat: i.querySelector('.skill-cat-input').value, val: i.querySelector('.skill-val-input').value })),
-        educations: getListVals('#educationList .list-item', ['year', 'degree', 'institution', 'score']),
-        achievements: Array.from(document.querySelectorAll('.ach-input')).map(i => i.value).filter(v => v),
-        projects: getListVals('#projectsList .project-item', ['title', 'date', 'desc']),
-        interests: Array.from(document.querySelectorAll('.int-input:not(.c-bullet)')).map(i => i.value).filter(v => v),
-        pors: getListVals('#porList .por-item', ['role', 'date', 'desc']),
+        custom_skills: Array.from(document.querySelectorAll('.custom-skill-item')).map(i => ({ cat: i.querySelector('.skill-cat-input').value, val: i.querySelector('.skill-val-input').value, _hidden: i.dataset.hidden === 'true' })),
+        educations: getListVals('#educationList .list-item', ['year', 'degree', 'institution', 'score']).map((item, idx) => {
+            const allItems = document.querySelectorAll('#educationList .list-item');
+            if (idx < allItems.length) item._hidden = allItems[idx].dataset.hidden === 'true';
+            return item;
+        }),
+        achievements: Array.from(document.querySelectorAll('#achievementsList .list-item .ach-input')).map((i, idx) => {
+            const allItems = document.querySelectorAll('#achievementsList .list-item');
+            const isHidden = idx < allItems.length && allItems[idx].dataset.hidden === 'true';
+            return { text: i.value, _hidden: isHidden };
+        }).filter(v => v.text),
+        projects: getListVals('#projectsList .project-item', ['title', 'date', 'desc']).map((item, idx) => {
+            const allItems = document.querySelectorAll('#projectsList .project-item');
+            if (idx < allItems.length) item._hidden = allItems[idx].dataset.hidden === 'true';
+            return item;
+        }),
+        interests: Array.from(document.querySelectorAll('#interestsList .list-item .int-input:not(.c-bullet)')).map((i, idx) => {
+            const allItems = document.querySelectorAll('#interestsList .list-item');
+            const isHidden = idx < allItems.length && allItems[idx].dataset.hidden === 'true';
+            return { text: i.value, _hidden: isHidden };
+        }).filter(v => v.text),
+        pors: getListVals('#porList .por-item', ['role', 'date', 'desc']).map((item, idx) => {
+            const allItems = document.querySelectorAll('#porList .por-item');
+            if (idx < allItems.length) item._hidden = allItems[idx].dataset.hidden === 'true';
+            return item;
+        }),
         extras: Array.from(document.querySelectorAll('#extraActivitesList .extra-item')).map(el => ({
     category: el.querySelector('[data-field="category"]')?.value || '',
-    desc: Array.from(el.querySelectorAll('[data-field="desc"]')).map(i => i.value).filter(v => v)
+    desc: Array.from(el.querySelectorAll('[data-field="desc"]')).map(i => i.value).filter(v => v),
+    _hidden: el.dataset.hidden === 'true'
 })),
         custom_sections: []
     };
@@ -48,9 +69,9 @@ function getResumeData() {
         while(prev) { if (prev.tagName === 'SECTION' && !prev.classList.contains('custom-section')) { insertAfterHeading = prev.querySelector('h2')?.textContent || ''; break; } prev = prev.previousElementSibling; }
         
         const type = sec.dataset.type, items = [];
-        if (type === 'type1') sec.querySelectorAll('.custom-item-type1').forEach(i => items.push({ title: i.querySelector('.c-title').value, date: i.querySelector('.c-date').value, desc: i.querySelector('.c-desc').value }));
-        else if (type === 'type2') sec.querySelectorAll('.c-bullet').forEach(i => { if(i.value) items.push(i.value); });
-        else if (type === 'type3') sec.querySelectorAll('.custom-item-type3').forEach(i => items.push({ cat: i.querySelector('.c-cat').value, desc: i.querySelector('.c-desc').value }));
+        if (type === 'type1') sec.querySelectorAll('.custom-item-type1').forEach(i => items.push({ title: i.querySelector('.c-title').value, date: i.querySelector('.c-date').value, desc: i.querySelector('.c-desc').value, _hidden: i.dataset.hidden === 'true' }));
+        else if (type === 'type2') sec.querySelectorAll('.list-item:not([data-hidden="true"]) .c-bullet').forEach(i => { if(i.value) items.push(i.value); });
+        else if (type === 'type3') sec.querySelectorAll('.custom-item-type3').forEach(i => items.push({ cat: i.querySelector('.c-cat').value, desc: i.querySelector('.c-desc').value, _hidden: i.dataset.hidden === 'true' }));
         
         data.custom_sections.push({ title: sec.querySelector('.custom-sec-title').value, type, insertAfterHeading, items });
     });
@@ -112,12 +133,12 @@ function populateFormWithData(data) {
     };
     
     // 4. Fill all standard lists
-    fillList('customSkillsList', data.custom_skills, s => `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
-    fillList('educationList', data.educations, e => `<input type="text" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
-    fillList('achievementsList', data.achievements, a => `<input type="text" class="ach-input" value="${escapeHTML(a)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`);
-    fillList('projectsList', data.projects, p => `<input type="text" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
-    fillList('interestsList', data.interests, int => `<input type="text" class="int-input" value="${escapeHTML(int)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`);
-    fillList('porList', data.pors, p => `<input type="text" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`);
+    fillList('customSkillsList', data.custom_skills, s => `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
+    fillList('educationList', data.educations, e => `<input type="text" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
+    fillList('achievementsList', data.achievements, a => `<input type="text" class="ach-input" value="${escapeHTML(typeof a === 'string' ? a : a.text || '')}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`);
+    fillList('projectsList', data.projects, p => `<input type="text" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
+    fillList('interestsList', data.interests, int => `<input type="text" class="int-input" value="${escapeHTML(typeof int === 'string' ? int : int.text || '')}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`);
+    fillList('porList', data.pors, p => `<input type="text" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
     fillList('extraActivitesList', data.extras, e => {
         // Force desc into an array (handles backwards compatibility with old JSONs)
         const descArray = Array.isArray(e.desc) ? e.desc : [e.desc || ''];
@@ -136,10 +157,36 @@ function populateFormWithData(data) {
             <div class="desc-lines">${linesHTML}</div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
                 <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
+                    <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
+                </div>
             </div>
         `;
     });
+
+    // Restore hidden state for all list items that have _hidden flag
+    const restoreHiddenState = (selector, items) => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach((el, idx) => {
+            if (items && items[idx] && items[idx]._hidden) {
+                el.classList.add('is-hidden');
+                el.dataset.hidden = 'true';
+                el.querySelectorAll('input, textarea, select, button').forEach(inp => {
+                    if (!inp.classList.contains('hide-btn') && !inp.classList.contains('remove-btn')) {
+                        inp.disabled = true;
+                    }
+                });
+            }
+        });
+    };
+    restoreHiddenState('#educationList .list-item', data.educations);
+    restoreHiddenState('#achievementsList .list-item', data.achievements);
+    restoreHiddenState('#projectsList .project-item', data.projects);
+    restoreHiddenState('#interestsList .list-item', data.interests);
+    restoreHiddenState('#porList .por-item', data.pors);
+    restoreHiddenState('#extraActivitesList .extra-item', data.extras);
+    restoreHiddenState('.custom-skill-item', data.custom_skills);
 
     // 5. Clean Custom Wrappers & Re-init
     document.querySelectorAll('.add-custom-wrapper, .custom-section').forEach(el => el.remove());
@@ -186,15 +233,25 @@ function populateFormWithData(data) {
             const div = document.createElement('div');
             if (cs.type === 'type1') { 
                 div.className = 'list-item project-item custom-item-type1'; 
-                div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`; 
+                div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`; 
             } else if (cs.type === 'type2') { 
                 div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; 
-                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button>`; 
+                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; flex:1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`; 
             } else if (cs.type === 'type3') { 
                 div.className = 'list-item extra-item custom-item-type3'; 
-                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button>`; 
+                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`; 
             }
             c.appendChild(div);
+            // Restore hidden state for custom section items
+            if (item._hidden) {
+                div.classList.add('is-hidden');
+                div.dataset.hidden = 'true';
+                div.querySelectorAll('input, textarea, select, button').forEach(inp => {
+                    if (!inp.classList.contains('hide-btn') && !inp.classList.contains('remove-btn')) {
+                        inp.disabled = true;
+                    }
+                });
+            }
         });
     });
 

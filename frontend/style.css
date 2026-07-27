@@ -547,6 +547,45 @@ textarea { resize: vertical; }
     transition: color 0.2s;
 }
 .remove-btn:hover { color: #b91c1c; }
+
+/* ════════════════════════════════════════
+   HIDE BUTTONS & HIDDEN STATE
+════════════════════════════════════════ */
+.hide-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.55;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+.hide-btn:hover { opacity: 1; }
+.hide-btn img { height: 20px; width: auto; display: block; }
+
+.list-item.is-hidden {
+    opacity: 0.4;
+    background: #f1f5f9;
+    border-color: #d1d5db;
+    pointer-events: none;
+}
+.list-item.is-hidden input,
+.list-item.is-hidden textarea,
+.list-item.is-hidden select {
+    background: #e2e8f0;
+    color: #94a3b8;
+    pointer-events: none;
+}
+.list-item.is-hidden .hide-btn {
+    pointer-events: auto;
+    opacity: 0.7;
+}
+.list-item.is-hidden .hide-btn:hover {
+    opacity: 1;
+}
 /* ========================================== */
 /* 🔐 AUTH MODAL STYLES                       */
 /* ========================================== */

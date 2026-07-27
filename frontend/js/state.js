@@ -4,6 +4,21 @@ const AppState = {
     logoBase64: ""
 };
 
+// ── Hide/Show Toggle for sub-section items ──
+function toggleHideItem(btn) {
+    const item = btn.closest('.list-item');
+    if (!item) return;
+    const isHidden = item.classList.toggle('is-hidden');
+    item.dataset.hidden = isHidden ? 'true' : 'false';
+    // Disable/enable all inputs inside the item
+    item.querySelectorAll('input, textarea, select, button').forEach(el => {
+        if (el !== btn && !el.classList.contains('remove-btn') && !el.classList.contains('hide-btn')) {
+            el.disabled = isHidden;
+        }
+    });
+    if (typeof updatePreview === 'function') updatePreview();
+}
+
 // HTML Sanitization
 function escapeHTML(str) {
     if (!str) return '';

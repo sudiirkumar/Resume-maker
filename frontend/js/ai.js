@@ -102,6 +102,15 @@ function getTextValue(element, selector) {
 
 function buildResumeReviewContext(reviewType) {
     const data = getResumeData();
+
+    // Filter out hidden items from all sections
+    const filterHidden = (items) => (items || []).filter(item => !item._hidden);
+    const filterHiddenObjs = (items) => (items || []).filter(item => typeof item === 'string' || !item._hidden);
+    const filterTextItems = (items) => (items || []).filter(item => !item._hidden);
+
+    const achievements = filterTextItems(data.achievements || []).map(a => typeof a === 'string' ? a : a.text);
+    const interests = filterTextItems(data.interests || []).map(a => typeof a === 'string' ? a : a.text);
+
     const context = {
         review_type: reviewType,
         degree_title: data.degree_title || '',
@@ -109,23 +118,23 @@ function buildResumeReviewContext(reviewType) {
             programming: data.skills_programming || '',
             engineering: data.skills_engineering || '',
             other: data.skills_other || '',
-            custom: data.custom_skills || [],
+            custom: filterHidden(data.custom_skills || []),
         },
         sections: {
-            achievements: data.achievements || [],
-            projects: data.projects || [],
-            interests: data.interests || [],
-            positions_of_responsibility: data.pors || [],
-            extracurricular: data.extras || [],
-            custom_sections: data.custom_sections || [],
+            achievements,
+            projects: filterHidden(data.projects || []),
+            interests,
+            positions_of_responsibility: filterHidden(data.pors || []),
+            extracurricular: filterHidden(data.extras || []),
+            custom_sections: filterHidden(data.custom_sections || []),
         },
         resume_stats: {
-            achievements_count: (data.achievements || []).length,
-            projects_count: (data.projects || []).length,
-            interests_count: (data.interests || []).length,
-            por_count: (data.pors || []).length,
-            extracurricular_count: (data.extras || []).length,
-            custom_section_count: (data.custom_sections || []).length,
+            achievements_count: achievements.length,
+            projects_count: filterHidden(data.projects || []).length,
+            interests_count: interests.length,
+            por_count: filterHidden(data.pors || []).length,
+            extracurricular_count: filterHidden(data.extras || []).length,
+            custom_section_count: filterHidden(data.custom_sections || []).length,
         },
         excluded_from_context: ['profile_pic_path', 'logo_path', 'name', 'gender', 'dob', 'email', 'phone', 'educations', 'footer_text'],
     };
@@ -139,8 +148,8 @@ function describeAiField(field) {
     if (field.classList.contains('ach-input')) {
         const listItem = field.closest('.list-item');
         const section = field.closest('section');
-        const allItems = Array.from(document.querySelectorAll('#achievementsList .ach-input')).map((input) => input.value.trim()).filter(Boolean);
-        const targetIndex = Array.from(document.querySelectorAll('#achievementsList .ach-input')).indexOf(field);
+        const allItems = Array.from(document.querySelectorAll('#achievementsList .list-item:not([data-hidden="true"]) .ach-input')).map((input) => input.value.trim()).filter(Boolean);
+        const targetIndex = Array.from(document.querySelectorAll('#achievementsList .list-item:not([data-hidden="true"]) .ach-input')).indexOf(field);
 
         return {
             field,
@@ -164,7 +173,7 @@ function describeAiField(field) {
     if (projectDesc) {
         const item = field.closest('.project-item');
         const section = field.closest('section');
-        const items = Array.from(document.querySelectorAll('#projectsList .project-item')).map((row) => ({
+        const items = Array.from(document.querySelectorAll('#projectsList .project-item:not([data-hidden="true"])')).map((row) => ({
             title: getTextValue(row, '[data-field="title"]'),
             date: getTextValue(row, '[data-field="date"]'),
             desc: getTextValue(row, '[data-field="desc"]'),
@@ -197,7 +206,7 @@ function describeAiField(field) {
     if (porDesc) {
         const item = field.closest('.por-item');
         const section = field.closest('section');
-        const items = Array.from(document.querySelectorAll('#porList .por-item')).map((row) => ({
+        const items = Array.from(document.querySelectorAll('#porList .por-item:not([data-hidden="true"])')).map((row) => ({
             role: getTextValue(row, '[data-field="role"]'),
             date: getTextValue(row, '[data-field="date"]'),
             desc: getTextValue(row, '[data-field="desc"]'),
@@ -232,7 +241,7 @@ function describeAiField(field) {
         const section = field.closest('section');
         const descFields = Array.from(item.querySelectorAll('[data-field="desc"]'));
         const targetIndex = descFields.indexOf(field);
-        const allItems = Array.from(document.querySelectorAll('#extraActivitesList .extra-item')).map((row) => ({
+        const allItems = Array.from(document.querySelectorAll('#extraActivitesList .extra-item:not([data-hidden="true"])')).map((row) => ({
             category: getTextValue(row, '[data-field="category"]'),
             desc: Array.from(row.querySelectorAll('[data-field="desc"]')).map((input) => input.value.trim()).filter(Boolean),
         }));
@@ -267,7 +276,7 @@ function describeAiField(field) {
 
         if (sectionType === 'type1' && field.classList.contains('c-desc')) {
             const item = field.closest('.custom-item-type1');
-            const items = Array.from(customSection.querySelectorAll('.custom-item-type1')).map((row) => ({
+            const items = Array.from(customSection.querySelectorAll('.custom-item-type1:not([data-hidden="true"])')).map((row) => ({
                 title: getTextValue(row, '.c-title'),
                 date: getTextValue(row, '.c-date'),
                 desc: getTextValue(row, '.c-desc'),
@@ -298,8 +307,8 @@ function describeAiField(field) {
         }
 
         if (sectionType === 'type2' && field.classList.contains('c-bullet')) {
-            const items = Array.from(customSection.querySelectorAll('.c-bullet')).map((input) => input.value.trim()).filter(Boolean);
-            const targetIndex = Array.from(customSection.querySelectorAll('.c-bullet')).indexOf(field);
+            const items = Array.from(customSection.querySelectorAll('.list-item:not([data-hidden="true"]) .c-bullet')).map((input) => input.value.trim()).filter(Boolean);
+            const targetIndex = Array.from(customSection.querySelectorAll('.list-item:not([data-hidden="true"]) .c-bullet')).indexOf(field);
 
             return {
                 field,
@@ -322,7 +331,7 @@ function describeAiField(field) {
 
         if (sectionType === 'type3' && field.classList.contains('c-desc')) {
             const item = field.closest('.custom-item-type3');
-            const items = Array.from(customSection.querySelectorAll('.custom-item-type3')).map((row) => ({
+            const items = Array.from(customSection.querySelectorAll('.custom-item-type3:not([data-hidden="true"])')).map((row) => ({
                 cat: getTextValue(row, '.c-cat'),
                 desc: getTextValue(row, '.c-desc'),
             }));

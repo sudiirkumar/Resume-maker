@@ -52,6 +52,10 @@ if (helpModal && !hasSeenHelp()) {
 }
 
 // ---- Compacted Form Handlers ----
+const HIDE_IMG = '<img src="./hide.png" height="20">';
+const hideBtn = () => `<button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show">${HIDE_IMG}</button>`;
+const actionRow = (content) => `<div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div>${hideBtn()}</div><div>${content}</div></div>`;
+
 const appendHTML = (id, html, classes = '') => {
     const div = document.createElement('div');
     if (classes) div.className = classes; else div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;';
@@ -62,12 +66,12 @@ const appendHTML = (id, html, classes = '') => {
 
 const rmBtn = (isRow = false) => `<button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" ${isRow ? 'style="width:auto; padding:0 10px;">X' : '><img src="./close.png" height=20>'}</button>`;
 
-function addEducation() { appendHTML('educationList', `<input type="text" placeholder="Year" data-field="year" class="edu-input"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input">${rmBtn()}`, 'list-item'); }
-function addAchievement() { appendHTML('achievementsList', `<input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">${rmBtn(true)}`); }
-function addProject() { appendHTML('projectsList', `<input type="text" placeholder="Project Title" data-field="title" class="proj-input"><input type="text" placeholder="Date" data-field="date" class="proj-input"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3"></textarea>${rmBtn()}`, 'list-item project-item'); }
-function addInterest() { appendHTML('interestsList', `<input type="text" placeholder="Interest" class="int-input" style="flex:1;">${rmBtn(true)}`); }
-function addPOR() { appendHTML('porList', `<input type="text" placeholder="Role" data-field="role" class="por-input"><input type="text" placeholder="Date" data-field="date" class="por-input"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2"></textarea>${rmBtn()}`, 'list-item por-item'); }
-function addCustomSkill() { appendHTML('customSkillsList', `<input type="text" placeholder="Category (e.g. Frameworks)" class="skill-cat-input ext-input"><input type="text" placeholder="Skills (e.g. React, Node.js)" class="skill-val-input ext-input">${rmBtn()}`, 'list-item custom-skill-item'); }
+function addEducation() { appendHTML('educationList', `<input type="text" placeholder="Year" data-field="year" class="edu-input"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input">${actionRow(rmBtn())}`, 'list-item'); }
+function addAchievement() { appendHTML('achievementsList', `<input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">${actionRow(rmBtn(true))}`); }
+function addProject() { appendHTML('projectsList', `<input type="text" placeholder="Project Title" data-field="title" class="proj-input"><input type="text" placeholder="Date" data-field="date" class="proj-input"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3"></textarea>${actionRow(rmBtn())}`, 'list-item project-item'); }
+function addInterest() { appendHTML('interestsList', `<input type="text" placeholder="Interest" class="int-input" style="flex:1;">${actionRow(rmBtn(true))}`); }
+function addPOR() { appendHTML('porList', `<input type="text" placeholder="Role" data-field="role" class="por-input"><input type="text" placeholder="Date" data-field="date" class="por-input"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2"></textarea>${actionRow(rmBtn())}`, 'list-item por-item'); }
+function addCustomSkill() { appendHTML('customSkillsList', `<input type="text" placeholder="Category (e.g. Frameworks)" class="skill-cat-input ext-input"><input type="text" placeholder="Skills (e.g. React, Node.js)" class="skill-val-input ext-input">${actionRow(rmBtn())}`, 'list-item custom-skill-item'); }
 function addExtracurricular() {
     const div = document.createElement('div'); 
     div.className = 'list-item extra-item';
@@ -83,9 +87,12 @@ function addExtracurricular() {
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
             <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-            <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
-                <img src="./close.png" height=16>
-            </button>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
+                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
+                    <img src="./close.png" height=16>
+                </button>
+            </div>
         </div>
     `;
     
@@ -115,9 +122,9 @@ function injectCustomSection(btn) {
 
 function addCustomItem(secId, type) {
     const c = document.querySelector(`#${secId} .custom-items-container`), div = document.createElement('div');
-    if (type === 'type1') { div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" placeholder="Sub-heading" class="c-title proj-input"><input type="text" placeholder="Date" class="c-date proj-input"><textarea placeholder="Description" class="c-desc proj-input" rows="3"></textarea>${rmBtn()}`; } 
-    else if (type === 'type2') { div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${rmBtn(true)}`; } 
-    else if (type === 'type3') { div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" placeholder="Category" class="c-cat ext-input"><input type="text" placeholder="Details" class="c-desc ext-input">${rmBtn()}`; }
+    if (type === 'type1') { div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" placeholder="Sub-heading" class="c-title proj-input"><input type="text" placeholder="Date" class="c-date proj-input"><textarea placeholder="Description" class="c-desc proj-input" rows="3"></textarea>${actionRow(rmBtn())}`; } 
+    else if (type === 'type2') { div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${actionRow(rmBtn(true))}`; } 
+    else if (type === 'type3') { div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" placeholder="Category" class="c-cat ext-input"><input type="text" placeholder="Details" class="c-desc ext-input">${actionRow(rmBtn())}`; }
     c.appendChild(div); updatePreview();
 }
 
