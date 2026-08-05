@@ -1,87 +1,69 @@
 # Resume PDF Generator
 
-This project is a simple web application designed to generate pixel-perfect resumes exactly matching your Word document template format. 
+This is a resume builder with a live HTML preview, JSON import/export, optional MongoDB cloud save, and AI-assisted rewriting/review for selected text fields.
 
-## Features
-- Vanilla HTML/CSS/JS frontend form
-- FastAPI (Python) backend to process data
-- `docxtpl` uses your `.docx` file directly as a Jinja2 template (preserves fonts, lines, margins!).
-- `LibreOffice` headless conversion to generate the final PDF without requiring MS Word. This allows safe deployment to an AWS VM (Linux).
-- AI rewrite/proofread support for long-form resume fields using Groq.
+## What It Does
 
-## Installation & Running
+- Live resume editor in vanilla HTML, CSS, and JavaScript
+- Real-time A4 preview with section pagination
+- JSON download/upload for offline backups and transfer between devices
+- Optional cloud save/load with FastAPI, MongoDB, and JWT login
+- AI rewrite and ATS review for paragraph-style fields when Groq is configured
+- PDF export through the backend PDF conversion service
 
-1. Activate your virtual environment: 
+## Run Locally
+
+1. Create and activate a Python environment.
+2. Install dependencies:
    ```bash
-   source venv/bin/activate
+   pip install -r requirements.txt
    ```
-2. Start the FastAPI server:
+3. Start the backend:
    ```bash
    python run.py
    ```
-3. Open your browser and go to: `http://localhost:8000/frontend/index.html`
+4. Open:
+   ```text
+   http://localhost:8000/frontend/index.html
+   ```
 
 ## Environment Variables
 
-Create or edit the root `.env` file with your local values:
+Create a root `.env` file with the values you want to use:
 
-- `MONGODB_URI`
-- `JWT_SECRET_KEY`
-- `PDF_ENDPOINT_KEY`
-- `GROQ_API_KEY`
-- `GROQ_MODEL`
-- `GROQ_API_URL`
-- `AI_SUMMARY_DEFAULT_WORDS`
+- `MONGODB_URI` for cloud save and login
+- `JWT_SECRET_KEY` for session signing
+- `PDF_ENDPOINT_KEY` for PDF export
+- `GROQ_API_KEY` for AI rewrite/review
+- `GROQ_MODEL` for the Groq model name
+- `GROQ_API_URL` if you need a custom Groq endpoint
+- `AI_SUMMARY_DEFAULT_WORDS` for the default summary length
 
-The AI star button only appears when the backend health check succeeds and the Groq API key is configured.
+If MongoDB is unavailable, the app still runs with local editing and JSON export/import. If Groq is not configured, the AI controls stay hidden.
 
-## IMPORTANT: Setting up your Template
+## Resume Sections
 
-To get your pixel-perfect PDF, you need to configure your Word Document (`205124096_SudhirKumar.docx`):
-1. **Rename** your `.docx` file to `template.docx`.
-2. **Move** it into the `backend/templates/` folder.
-3. Open `template.docx` in Microsoft Word or LibreOffice and replace your actual data with these exact Jinja2 tags so the backend can fill them in dynamically:
+The editor supports these built-in fields:
 
-### Basic Info Variables:
-- Name: `{{ name }}`
-- Degree Title: `{{ degree_title }}`
-- Gender: `{{ gender }}`
-- Date of Birth: `{{ dob }}`
-- Email: `{{ email }}`
-- Contact: `{{ phone }}`
-- Areas of Interest: `{% for interest in interests %}{{ interest }}{% if not loop.last %}, {% endif %}{% endfor %}`
-- Programming Languages: `{{ skills_programming }}`
-- Engineering Software: `{{ skills_engineering }}`
-- Other Software: `{{ skills_other }}`
+- Personal information
+- Educational qualification
+- Academic achievements
+- Other projects
+- Areas of interest
+- Technical skills and certifications
+- Positions of responsibility
+- Extracurricular activities
+- Custom sections with type 1, type 2, or type 3 layouts
 
-### Profile Photo Placeholder
-Wherever you want the passport photo to appear, just write:
-`{{ profile_pic }}`
+The achievements and interests sections are bullet-style lists, so each visible row is saved and restored as a separate item.
 
-### Educational Qualification Table
-In your table, keep the header. In the first *content* row, put this:
-| `{% tr for edu in educations %}{{ edu.year }}` | `{{ edu.degree }}` | `{{ edu.institution }}` | `{{ edu.score }}{% tr endfor %}` |
+## Help Text
 
-### Academic Achievements List
-`{% for ach in achievements %}`
-• `{{ ach }}`
-`{% endfor %}`
+The on-page Help modal covers quick start, JSON workflows, cloud sync, and AI tools. It opens automatically the first time a browser sees the app, and can be reopened with the Help button.
 
-### Other Projects
-`{% for proj in projects %}`
-**{{ proj.title }}**                   *{{ proj.date }}*
-{{ proj.desc }}
-`{% endfor %}`
+## Notes For Development
 
-### Positions of Responsibility
-`{% for por in pors %}`
-**{{ por.role }}**                   *{{ por.date }}*
-{{ por.desc }}
-`{% endfor %}`
-
-### Extracurricular Activities
-`{% for ext in extras %}`
-• `{{ ext }}`
-`{% endfor %}`
-
-Save the `.docx` and run the app. It will seamlessly insert the exact tags into your template and output an exact identical PDF.
+- `backend/main.py` hosts the API routes and static frontend.
+- `frontend/js/data.js` extracts and restores resume state.
+- `frontend/js/preview.js` builds the live preview from the form.
+- `frontend/js/auth.js` handles login, logout, and cloud save/load.

@@ -8,12 +8,6 @@ from fastapi.security import OAuth2PasswordBearer
 import backend.models as models
 from beanie import PydanticObjectId
 
-# Ensure your Depends/OAuth2 imports from earlier are still here!
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-import backend.models as models
-from beanie import PydanticObjectId
-
 load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-development-key-change-me")

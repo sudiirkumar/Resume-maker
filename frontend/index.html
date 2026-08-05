@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume PDF Generator</title>
-
     <!-- (Optional) Bumping ?v=3 to bust cache again just in case -->
     <link rel="stylesheet" href="style.css?v=3" />
     <link rel="stylesheet" href="preview.css?v=3" />
@@ -15,6 +14,7 @@
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
+
 </head>
 
 <body>
@@ -60,7 +60,7 @@
                     <h3>Quick start</h3>
                     <ol>
                         <li>Fill in your details in the left panel. The preview on the right updates as you type.</li>
-                        <li>Use <strong>+ Add</strong> buttons to add more education, projects, skills, and other sections.</li>
+                        <li>Use <strong>+ Add</strong> buttons to add more education, projects, achievements, interests, skills, and other sections.</li>
                         <li>When ready, use <strong>Print / Save PDF</strong> to download the resume as a PDF.</li>
                     </ol>
                 </div>
@@ -72,6 +72,7 @@
                         <li><strong>Download JSON</strong> creates a backup file of everything in the form.</li>
                         <li><strong>Upload JSON</strong> lets you bring back a previously saved file and continue editing.</li>
                     </ul>
+                    <p>The achievements and interests sections are saved as bullet-style lists, so every visible row is preserved in the JSON file and restored exactly as you left it.</p>
                     <p><strong>Example:</strong> finish your resume on one laptop, download the JSON file, and upload it later on another device to continue from the same data.</p>
                 </div>
 
@@ -103,6 +104,7 @@
                     <ul>
                         <li>Use real, consistent dates and spellings for the best final PDF.</li>
                         <li>Upload images only when needed, since large files can slow things down.</li>
+                        <li>Achievements and interests behave like bullet lists, so add one idea per row for the cleanest preview.</li>
                         <li>For AI suggestions, review the output before applying it, especially on long descriptions.</li>
                         <li>Keep a JSON backup before making big edits so you can roll back quickly.</li>
                     </ul>
@@ -200,7 +202,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 <section>
                     <h2>Academic Achievements</h2>
                     <div id="achievementsList">
-                        <div style="display:flex; gap:10px; margin-bottom:8px;">
+                        <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">
                             <button type="button" onclick="this.parentElement.remove(); updatePreview();"
                                 class="remove-btn" style="width:auto; padding:0 10px;">X</button>
@@ -229,7 +231,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 <section>
                     <h2>Areas of Interest</h2>
                     <div id="interestsList">
-                        <div style="display:flex; gap:10px; margin-bottom:8px;">
+                        <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Interest" class="int-input" style="flex:1;">
                             <button type="button" onclick="this.parentElement.remove(); updatePreview();"
                                 class="remove-btn" style="width:auto; padding:0 10px;">X</button>
