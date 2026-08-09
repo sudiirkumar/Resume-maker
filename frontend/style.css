@@ -1262,3 +1262,28 @@ textarea { resize: vertical; }
     color: #2e7d32;
     border: 1px solid #c8e6c9;
 }
+
+/* ════════════════════════════════════════
+   NARROW SCREENS (mobile / tablet portrait / too-narrow windows):
+   Show ONLY the form; hide the live preview & resizer.
+   The preview is still built exactly the same way, just not shown.
+════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .preview-panel,
+    .resizer { display: none !important; }
+
+    /* Let the form fill the whole width (overrides the resizer's inline width) */
+    .form-panel { width: 100% !important; }
+
+    /* Print/Save PDF stays visible, repositioned to sit over the form panel */
+    .floating-print-btn {
+        right: 16px;
+        bottom: 16px;
+    }
+    .panel-toolbar--floating {
+        position:static;
+        top: 14px;
+        z-index: 40;
+        margin-bottom: 14px;
+    }
+}
