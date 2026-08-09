@@ -165,4 +165,8 @@ function updatePreview() {
         }
     });
     paginateChunks(chunks);
+
+    if (window.ResumeWorkflow && !window.ResumeWorkflow.applying) {
+        window.ResumeWorkflow.scheduleSnapshot();
+    }
 }

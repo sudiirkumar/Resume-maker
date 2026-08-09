@@ -6,7 +6,7 @@ const getListVals = (sel, fields) => Array.from(document.querySelectorAll(sel)).
 function addExtraLine(btn) {
     const linesContainer = btn.closest('.list-item').querySelector('.desc-lines');
     const div = document.createElement('div');
-    div.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+    div.className = 'desc-line-row';
     div.innerHTML = `
         <input type="text" data-field="desc" class="ext-input" placeholder="Activity details..." style="flex:1;" oninput="updatePreview()">
         <button type="button" onclick="this.parentElement.remove(); updatePreview();" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size: 1.1rem;">&times;</button>
@@ -99,7 +99,11 @@ function downloadJSON() {
 // ==========================================
 // 🔄 DATA POPULATION HELPER
 // ==========================================
-function populateFormWithData(data) {
+function populateFormWithData(data, options = {}) {
+    const resetHistory = options.resetHistory !== false;
+    const workflow = window.ResumeWorkflow;
+    if (workflow?.beginBatch) workflow.beginBatch();
+
     // 1. Restore primitive text inputs
     ['name','degree_title','gender','dob','email','phone'].forEach(k => { 
         if(document.getElementById(`inp-${k.replace('_','-')}`)) {
@@ -125,7 +129,7 @@ function populateFormWithData(data) {
             if(['educationList','projectsList','porList','extraActivitesList','customSkillsList'].includes(id)) {
                 div.className = 'list-item' + (id==='projectsList'?' project-item':id==='porList'?' por-item':id==='extraActivitesList'?' extra-item':id==='customSkillsList'?' custom-skill-item':''); 
             } else {
-                div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; 
+                div.className = 'list-item compact-item';
             }
             div.innerHTML = htmlFn(item); 
             el.appendChild(div); 
@@ -145,7 +149,7 @@ function populateFormWithData(data) {
         
         // Build the HTML for all the lines
         const linesHTML = descArray.map((d, i) => `
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <div class="desc-line-row">
                 <input type="text" data-field="desc" class="ext-input" value="${escapeHTML(d)}" style="flex:1;">
                 ${i > 0 ? `<button type="button" onclick="this.parentElement.remove(); updatePreview();" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size: 1.1rem;">&times;</button>` : ''}
             </div>
@@ -156,16 +160,12 @@ function populateFormWithData(data) {
             <input type="text" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}">
             <div class="desc-lines">${linesHTML}</div>
             <div class="item-action-row" style="margin-top: 5px;">
-                <div class="action-left">
-                    <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-                </div>
-                <div class="action-center">
+                <div class="action-group">
+                    <button type="button" onclick="addExtraLine(this)" class="action-link">+ Add Line</button>
                     <div class="move-btns">
                         <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
                         <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
                     </div>
-                </div>
-                <div class="action-right" style="display:flex; gap:6px; align-items:center;">
                     <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
                     <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
                 </div>
@@ -242,12 +242,12 @@ function populateFormWithData(data) {
             if (cs.type === 'type1') { 
                 div.className = 'list-item project-item custom-item-type1'; 
                 div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea>${actionRow(rmBtn())}`; 
-            } else if (cs.type === 'type2') { 
-                div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; 
-                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;">${actionRow(rmBtn(true))}`; 
-            } else if (cs.type === 'type3') { 
-                div.className = 'list-item extra-item custom-item-type3'; 
-                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}">${actionRow(rmBtn())}`; 
+            } else if (cs.type === 'type2') {
+                div.className = 'list-item compact-item custom-item-type2';
+                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;">${actionRow(rmBtn(true))}`;
+            } else if (cs.type === 'type3') {
+                div.className = 'list-item extra-item custom-item-type3';
+                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}">${actionRow(rmBtn())}`;
             }
             c.appendChild(div);
             // Restore hidden state for custom section items
@@ -267,6 +267,8 @@ function populateFormWithData(data) {
     // 7. Refresh all move buttons and trigger the visual update
     if (typeof refreshAllMoveButtons === 'function') refreshAllMoveButtons();
     updatePreview();
+
+    if (workflow?.endBatch) workflow.endBatch({ refreshHistory: resetHistory });
 }
 document.getElementById('uploadJsonBtn').addEventListener('change', function(e) {
     if (!e.target.files[0]) return;

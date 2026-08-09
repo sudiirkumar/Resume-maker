@@ -187,21 +187,20 @@ if (logoutBtn) {
     });
 }
 
-async function saveResumeToCloud(token) {
-    const originalText = openAuthBtn.innerHTML;
-    openAuthBtn.innerHTML = '⏳ Saving...';
-    openAuthBtn.disabled = true;
+async function saveResumeToCloud(token, options = {}) {
+    const shouldUpdateButton = !options.silent && Boolean(openAuthBtn);
+    const originalText = shouldUpdateButton ? openAuthBtn.innerHTML : '';
 
     try {
         // 1. Grab the perfectly formatted data from your existing data.js logic!
-        const resumeData = getResumeData(); 
+        const resumeData = getResumeData();
 
         // 2. Send it securely to MongoDB
         const response = await fetch(`${API_BASE_URL}/resume`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ content: resumeData })
         });
@@ -210,10 +209,10 @@ async function saveResumeToCloud(token) {
         if (response.status === 401) {
             localStorage.removeItem('resume_jwt_token');
             syncCloudActionVisibility();
-            if (openAuthBtn) openAuthBtn.innerHTML = '⚠️ Session Expired';
+            if (shouldUpdateButton) openAuthBtn.innerHTML = '⚠️ Session Expired';
             setTimeout(() => {
                 authModal.classList.remove('hidden');
-                if (openAuthBtn) openAuthBtn.innerHTML = 'Cloud Sync / Login';
+                if (shouldUpdateButton) openAuthBtn.innerHTML = 'Cloud Sync / Login';
             }, 2000);
             return;
         }
@@ -221,21 +220,29 @@ async function saveResumeToCloud(token) {
         if (!response.ok) throw new Error('Failed to save to MongoDB');
 
         // 4. Success UI
-        openAuthBtn.innerHTML = '✅ Saved!';
-        openAuthBtn.style.backgroundColor = '#2e7d32'; 
+        if (shouldUpdateButton) {
+            openAuthBtn.innerHTML = '✅ Saved!';
+            openAuthBtn.style.backgroundColor = '#2e7d32';
+        }
 
     } catch (error) {
         console.error(error);
-        openAuthBtn.innerHTML = '❌ Error';
-        openAuthBtn.style.backgroundColor = '#c62828'; 
+        if (shouldUpdateButton) {
+            openAuthBtn.innerHTML = '❌ Error';
+            openAuthBtn.style.backgroundColor = '#c62828';
+        }
     } finally {
-        setTimeout(() => {
-            openAuthBtn.innerHTML = '☁️ Save to Cloud';
-            openAuthBtn.style.backgroundColor = ''; 
-            openAuthBtn.disabled = false;
-        }, 3000);
+        if (shouldUpdateButton) {
+            setTimeout(() => {
+                openAuthBtn.innerHTML = originalText;
+                openAuthBtn.style.backgroundColor = '';
+                openAuthBtn.disabled = false;
+            }, 3000);
+        }
     }
 }
+
+window.saveResumeToCloud = saveResumeToCloud;
 
 // --- 3. API Communication Logic (Auth) ---
 

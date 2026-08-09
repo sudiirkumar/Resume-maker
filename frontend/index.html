@@ -5,8 +5,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume PDF Generator</title>
-    <!-- (Optional) Bumping ?v=4 to bust cache again just in case -->
-    <link rel="stylesheet" href="style.css?v=4" />
+    <!-- (Optional) Bumping ?v=5 to bust cache again just in case -->
+    <link rel="stylesheet" href="style.css?v=5" />
     <link rel="stylesheet" href="preview.css?v=4" />
 
     <!-- Vercel Web Analytics -->
@@ -116,25 +116,47 @@
     </div>
     <div class="app-layout">
         <div class="form-panel" id="leftPanel">
-            <button id="openHelpBtn" type="button" class="help-btn" aria-label="Open help instructions">Help?</button>
-            <h1>Resume Generator</h1>
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Resume builder</p>
+                    <h1>Resume Generator</h1>
+                </div>
+                <button id="openHelpBtn" type="button" class="help-btn" aria-label="Open help instructions">Help?</button>
+            </div>
 
-            <section style="
-            background: #e8f4f8;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            ">
-                <h3 style="margin-top: 0">Upload JSON</h3>
-                <input type="file" id="uploadJsonBtn" accept="application/json" style="margin-bottom: 10px" />
-                <p style="font-size: 12px; color: #666; margin: 0">
-                    Load previously saved resume data
-                </p>
-            </section>
+            <div class="toolbar-strip">
+                <div class="toolbar-row toolbar-row--top toolbar-row--nowrap">
+                    <label class="toolbar-file" for="uploadJsonBtn" style="margin-bottom: 0px;">
+                        <input type="file" id="uploadJsonBtn" accept="application/json" />
+                        <span class="toolbar-btn">Import JSON</span>
+                    </label>
+                    <button type="button" class="toolbar-btn" onclick="downloadJSON()">Export JSON</button>
+                    <button id="openAuthBtn" type="button" class="toolbar-primary" style="display: none;">Cloud Sync / Login</button>
+                </div>
+            </div>
 
-            <div class="cloud-action-row" id="cloudActionRow" style="display:none;">
-                <button id="loadResume" class="secondary-btn cloud-action-btn" type="button">Load latest resume from cloud</button>
-                <button id="logoutBtn" class="cloud-logout-btn" type="button">Logout</button>
+            <div class="cloud-action-row cloud-action-row--floating" id="cloudActionRow" style="display:none;">
+                <button id="loadResume" class="cloud-action-btn toolbar-btn" type="button">Load latest resume from cloud</button>
+                <button id="logoutBtn" class="cloud-logout-btn" type="button" aria-label="Logout" title="Logout">
+                    <img class="toolbar-icon-img" src="./logout.png" alt="" aria-hidden="true" />
+                </button>
+            </div>
+
+            <div class="panel-toolbar panel-toolbar--floating">
+                <div class="toolbar-row toolbar-row--top">
+                    <button id="autoSaveToggle" type="button" class="toolbar-toggle is-on" aria-pressed="true">
+                        <span class="autosave-toggle-label">Autosave</span>
+                        <span class="toolbar-toggle-state">On</span>
+                        <span class="toolbar-toggle-track" aria-hidden="true"><span class="toolbar-toggle-knob"></span></span>
+                    </button>
+                    <button id="undoBtn" type="button" class="toolbar-btn toolbar-icon-btn" disabled aria-label="Undo" title="Undo">
+                        <img class="toolbar-icon-img" src="./undo.png" alt="" aria-hidden="true" />
+                    </button>
+                    <button id="redoBtn" type="button" class="toolbar-btn toolbar-icon-btn" disabled aria-label="Redo" title="Redo">
+                        <img class="toolbar-icon-img" src="./redo.png" alt="" aria-hidden="true" />
+                    </button>
+                    <button id="clearAllBtn" type="button" class="toolbar-danger">Clear All</button>
+                </div>
             </div>
 
             <form id="resumeForm">
@@ -202,7 +224,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 <section>
                     <h2>Academic Achievements</h2>
                     <div id="achievementsList">
-                        <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
+                        <div class="list-item compact-item">
                             <input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">
                         </div>
                     </div>
@@ -229,7 +251,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                 <section>
                     <h2>Areas of Interest</h2>
                     <div id="interestsList">
-                        <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
+                        <div class="list-item compact-item">
                             <input type="text" placeholder="Interest" class="int-input" style="flex:1;">
                         </div>
                     </div>
@@ -275,7 +297,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                                 placeholder="Category (e.g. Sport Activities:)" oninput="updatePreview()" />
 
                             <div class="desc-lines">
-                                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                <div class="desc-line-row">
                                     <input type="text" data-field="desc" class="ext-input"
                                         placeholder="Activity details..." style="flex:1;" oninput="updatePreview()" />
                                 </div>
@@ -286,21 +308,14 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                         + Add Activity
                     </button>
                 </section>
-                <div style="display: flex;">
-                    <button id="openAuthBtn" type="button" class="action-btn secondary-btn" style="display: none;">Cloud
-                        Sync / Login</button>
-                    <button type="button" class="submit-btn" id="generateBtn">
-                        Print / Save PDF
-                    </button>
-                </div>
-                <button type="button" class="add-btn" onclick="downloadJSON()" style="width: 100%; margin-top: 10px">
-                    Download JSON
-                </button>
             </form>
-            <div id="status"></div>
             <button id="resumeAiFab" type="button" class="resume-ai-fab" aria-label="Resume AI tools" title="Resume AI tools">
                 <span class="resume-ai-fab-icon">✦</span>
                 <span class="resume-ai-fab-text">Resume AI</span>
+            </button>
+            <button type="button" class="toolbar-btn floating-print-btn" id="generateBtn" aria-label="Print / Save PDF" title="Print / Save PDF">
+                    <img class="toolbar-icon-img" src="./download.png" alt="" aria-hidden="true" />
+                    Print / Save PDF
             </button>
             <div id="resumeAiPopover" class="resume-ai-popover hidden" aria-label="Resume AI options">
                 <div class="ai-popover-title">Resume AI</div>
@@ -403,6 +418,7 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
     <script src="js/preview.js?v=3"></script>
     <script src="js/auth.js?v=3"></script>
     <script src="js/data.js?v=3"></script>
+    <script src="js/workflow.js?v=4"></script>
     <script src="js/ai.js?v=3"></script>
     
 </body>

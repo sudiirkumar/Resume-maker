@@ -54,12 +54,13 @@ if (helpModal && !hasSeenHelp()) {
 // ---- Compacted Form Handlers ----
 const HIDE_IMG = '<img src="./hide.png" height="20">';
 const hideBtn = () => `<button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show">${HIDE_IMG}</button>`;
-const upBtn = () => `<button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>`;
-const downBtn = () => `<button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>`;
+const ARROW_IMG = '<img src="./arrow.png" alt="" aria-hidden="true">';
+const upBtn = () => `<button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">${ARROW_IMG}</button>`;
+const downBtn = () => `<button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">${ARROW_IMG}</button>`;
 const moveBtns = () => `<div class="move-btns">${upBtn()}${downBtn()}</div>`;
 
-// Bottom action row: Hide (left) | Up/Down (center) | Delete (right)
-const actionRow = (content) => `<div class="item-action-row"><div class="action-left">${hideBtn()}</div><div class="action-center">${moveBtns()}</div><div class="action-right">${content}</div></div>`;
+// Bottom action row: keep controls centered as one compact group
+const actionRow = (content) => `<div class="item-action-row"><div class="action-group">${hideBtn()}${moveBtns()}${content}</div></div>`;
 
 const appendHTML = (id, html, classes = '') => {
     const div = document.createElement('div');
@@ -72,12 +73,12 @@ const appendHTML = (id, html, classes = '') => {
 };
 
 // Delete button: image-based for list-items, "X" text for row items
-const rmBtn = (isRow = false) => `<button type="button" onclick="removeItem(this)" class="remove-btn" ${isRow ? 'style="width:auto; padding:0 10px;">X' : '><img src="./close.png" height=20>'}</button>`;
+const rmBtn = (isRow = false) => `<button type="button" onclick="removeItem(this)" class="remove-btn" ${isRow ? 'style="width:auto; padding:0 10px;"><img src="./close.png" height="16">' : '><img src="./close.png" height=20>'}</button>`;
 
 function addEducation() { appendHTML('educationList', `<input type="text" placeholder="Year" data-field="year" class="edu-input"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input">${actionRow(rmBtn())}`, 'list-item'); }
-function addAchievement() { appendHTML('achievementsList', `<input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">${actionRow(rmBtn(true))}`, 'list-item'); }
+function addAchievement() { appendHTML('achievementsList', `<input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">${actionRow(rmBtn(true))}`, 'list-item compact-item'); }
 function addProject() { appendHTML('projectsList', `<input type="text" placeholder="Project Title" data-field="title" class="proj-input"><input type="text" placeholder="Date" data-field="date" class="proj-input"><textarea placeholder="Description" data-field="desc" class="proj-input" rows="3"></textarea>${actionRow(rmBtn())}`, 'list-item project-item'); }
-function addInterest() { appendHTML('interestsList', `<input type="text" placeholder="Interest" class="int-input" style="flex:1;">${actionRow(rmBtn(true))}`, 'list-item'); }
+function addInterest() { appendHTML('interestsList', `<input type="text" placeholder="Interest" class="int-input" style="flex:1;">${actionRow(rmBtn(true))}`, 'list-item compact-item'); }
 function addPOR() { appendHTML('porList', `<input type="text" placeholder="Role" data-field="role" class="por-input"><input type="text" placeholder="Date" data-field="date" class="por-input"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2"></textarea>${actionRow(rmBtn())}`, 'list-item por-item'); }
 function addCustomSkill() { appendHTML('customSkillsList', `<input type="text" placeholder="Category (e.g. Frameworks)" class="skill-cat-input ext-input"><input type="text" placeholder="Skills (e.g. React, Node.js)" class="skill-val-input ext-input">${actionRow(rmBtn())}`, 'list-item custom-skill-item'); }
 function addExtracurricular() {
@@ -88,26 +89,20 @@ function addExtracurricular() {
         <input type="text" data-field="category" class="ext-input" placeholder="Category (e.g. Sport Activities:)" oninput="updatePreview()">
 
         <div class="desc-lines">
-            <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <div class="desc-line-row">
                 <input type="text" data-field="desc" class="ext-input" placeholder="Activity details..." style="flex:1;" oninput="updatePreview()">
             </div>
         </div>
 
         <div class="item-action-row" style="margin-top: 5px;">
-            <div class="action-left">
-                <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-            </div>
-            <div class="action-center">
+            <div class="action-group">
+                <button type="button" onclick="addExtraLine(this)" class="action-link">+ Add Line</button>
                 <div class="move-btns">
                     <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
                     <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
                 </div>
-            </div>
-            <div class="action-right" style="display:flex; gap:6px; align-items:center;">
-                <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
-                <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
-                    <img src="./close.png" height=16>
-                </button>
+                ${hideBtn()}
+                ${rmBtn()}
             </div>
         </div>
     `;
@@ -141,7 +136,7 @@ function injectCustomSection(btn) {
 function addCustomItem(secId, type) {
     const c = document.querySelector(`#${secId} .custom-items-container`), div = document.createElement('div');
     if (type === 'type1') { div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" placeholder="Sub-heading" class="c-title proj-input"><input type="text" placeholder="Date" class="c-date proj-input"><textarea placeholder="Description" class="c-desc proj-input" rows="3"></textarea>${actionRow(rmBtn())}`; }
-    else if (type === 'type2') { div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${actionRow(rmBtn(true))}`; }
+    else if (type === 'type2') { div.className = 'list-item compact-item custom-item-type2'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${actionRow(rmBtn(true))}`; }
     else if (type === 'type3') { div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" placeholder="Category" class="c-cat ext-input"><input type="text" placeholder="Details" class="c-desc ext-input">${actionRow(rmBtn())}`; }
     c.appendChild(div);
     if (typeof refreshMoveButtons === 'function') refreshMoveButtons(c);
@@ -186,20 +181,11 @@ function enhanceInitialItems() {
             const newRow = document.createElement('div');
             newRow.innerHTML = `
                 <div class="item-action-row" style="margin-top: 5px;">
-                    <div class="action-left">
-                        <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-                    </div>
-                    <div class="action-center">
-                        <div class="move-btns">
-                            <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
-                            <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
-                        </div>
-                    </div>
-                    <div class="action-right" style="display:flex; gap:6px; align-items:center;">
-                        <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
-                        <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
-                            <img src="./close.png" height=16>
-                        </button>
+                    <div class="action-group">
+                        <button type="button" onclick="addExtraLine(this)" class="action-link">+ Add Line</button>
+                        ${moveBtns()}
+                        ${hideBtn()}
+                        ${rmBtn()}
                     </div>
                 </div>
             `;
