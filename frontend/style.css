@@ -1207,7 +1207,7 @@ textarea { resize: vertical; }
     background: #ffffff;
     color: #ff0000;
     border-radius: 6px;
-    padding: 14px 14px;
+    /* padding: 14px 14px; */
     font-size: 0.86rem;
     font-weight: 700;
     cursor: pointer;
