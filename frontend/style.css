@@ -532,19 +532,65 @@ textarea { resize: vertical; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* ════════════════════════════════════════
+   ITEM ACTION ROW (Hide | Up/Down | Delete)
+════════════════════════════════════════ */
+.item-action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    grid-column: 1 / -1;
+    margin-top: 4px;
+}
+.action-left { display: flex; align-items: center; }
+.action-center { display: flex; align-items: center; justify-content: center; flex: 1; }
+.action-right { display: flex; align-items: center; justify-content: flex-end; }
+
+/* Move buttons container (up/down arrows) */
+.move-btns {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Individual move buttons */
+.move-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    line-height: 1;
+    color: #64748b;
+    opacity: 0.6;
+    transition: opacity 0.2s, color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.move-btn:hover:not(:disabled) {
+    opacity: 1;
+    color: #3b82f6;
+}
+.move-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+/* ════════════════════════════════════════
    REMOVE BUTTONS
 ════════════════════════════════════════ */
 .remove-btn {
-    grid-column: 1 / -1; /* Spans across the entire grid row */
-    justify-self: end; /* Aligns to the right */
-    color: #ef4444; 
-    background: none; 
-    border: none; 
-    cursor: pointer; 
-    font-size: 0.85rem; 
+    color: #ef4444;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
     font-weight: 700;
     padding: 0;
     transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
 }
 .remove-btn:hover { color: #b91c1c; }
 
@@ -552,8 +598,6 @@ textarea { resize: vertical; }
    HIDE BUTTONS & HIDDEN STATE
 ════════════════════════════════════════ */
 .hide-btn {
-    grid-column: 1 / -1;
-    justify-self: start;
     background: none;
     border: none;
     cursor: pointer;

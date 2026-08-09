@@ -133,12 +133,12 @@ function populateFormWithData(data) {
     };
     
     // 4. Fill all standard lists
-    fillList('customSkillsList', data.custom_skills, s => `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
-    fillList('educationList', data.educations, e => `<input type="text" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
-    fillList('achievementsList', data.achievements, a => `<input type="text" class="ach-input" value="${escapeHTML(typeof a === 'string' ? a : a.text || '')}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`);
-    fillList('projectsList', data.projects, p => `<input type="text" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
-    fillList('interestsList', data.interests, int => `<input type="text" class="int-input" value="${escapeHTML(typeof int === 'string' ? int : int.text || '')}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`);
-    fillList('porList', data.pors, p => `<input type="text" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`);
+    fillList('customSkillsList', data.custom_skills, s => `<input type="text" class="skill-cat-input ext-input" value="${escapeHTML(s.cat||'')}"><input type="text" class="skill-val-input ext-input" value="${escapeHTML(s.val||'')}">${actionRow(rmBtn())}`);
+    fillList('educationList', data.educations, e => `<input type="text" data-field="year" class="edu-input" value="${escapeHTML(e.year||'')}"><input type="text" data-field="degree" class="edu-input" value="${escapeHTML(e.degree||'')}"><input type="text" data-field="institution" class="edu-input" value="${escapeHTML(e.institution||'')}"><input type="text" data-field="score" class="edu-input" value="${escapeHTML(e.score||'')}">${actionRow(rmBtn())}`);
+    fillList('achievementsList', data.achievements, a => `<input type="text" class="ach-input" value="${escapeHTML(typeof a === 'string' ? a : a.text || '')}" style="flex:1;">${actionRow(rmBtn(true))}`);
+    fillList('projectsList', data.projects, p => `<input type="text" data-field="title" class="proj-input" value="${escapeHTML(p.title||'')}"><input type="text" data-field="date" class="proj-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="proj-input" rows="3">${escapeHTML(p.desc||'')}</textarea>${actionRow(rmBtn())}`);
+    fillList('interestsList', data.interests, int => `<input type="text" class="int-input" value="${escapeHTML(typeof int === 'string' ? int : int.text || '')}" style="flex:1;">${actionRow(rmBtn(true))}`);
+    fillList('porList', data.pors, p => `<input type="text" data-field="role" class="por-input" value="${escapeHTML(p.role||'')}"><input type="text" data-field="date" class="por-input" value="${escapeHTML(p.date||'')}"><textarea data-field="desc" class="por-input" rows="2">${escapeHTML(p.desc||'')}</textarea>${actionRow(rmBtn())}`);
     fillList('extraActivitesList', data.extras, e => {
         // Force desc into an array (handles backwards compatibility with old JSONs)
         const descArray = Array.isArray(e.desc) ? e.desc : [e.desc || ''];
@@ -151,15 +151,23 @@ function populateFormWithData(data) {
             </div>
         `).join('');
 
-        // Return the minimal nested UI structure
+        // Return the minimal nested UI structure with up/down buttons
         return `
             <input type="text" data-field="category" class="ext-input" value="${escapeHTML(e.category||'')}">
             <div class="desc-lines">${linesHTML}</div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-                <div style="display:flex; gap:6px; align-items:center;">
+            <div class="item-action-row" style="margin-top: 5px;">
+                <div class="action-left">
+                    <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
+                </div>
+                <div class="action-center">
+                    <div class="move-btns">
+                        <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
+                        <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
+                    </div>
+                </div>
+                <div class="action-right" style="display:flex; gap:6px; align-items:center;">
                     <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
-                    <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
+                    <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;"><img src="./close.png" height=16></button>
                 </div>
             </div>
         `;
@@ -233,13 +241,13 @@ function populateFormWithData(data) {
             const div = document.createElement('div');
             if (cs.type === 'type1') { 
                 div.className = 'list-item project-item custom-item-type1'; 
-                div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`; 
+                div.innerHTML = `<input type="text" class="c-title proj-input" value="${escapeHTML(item.title||'')}"><input type="text" class="c-date proj-input" value="${escapeHTML(item.date||'')}"><textarea class="c-desc proj-input" rows="3">${escapeHTML(item.desc||'')}</textarea>${actionRow(rmBtn())}`; 
             } else if (cs.type === 'type2') { 
                 div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; 
-                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;"><div style="display:flex; justify-content:space-between; align-items:center; flex:1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" style="width:auto; padding:0 10px;">X</button></div></div>`; 
+                div.innerHTML = `<input type="text" class="c-bullet ach-input" value="${escapeHTML(item)}" style="flex:1;">${actionRow(rmBtn(true))}`; 
             } else if (cs.type === 'type3') { 
                 div.className = 'list-item extra-item custom-item-type3'; 
-                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}"><div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div><button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show"><img src="./hide.png" height="20"></button></div><div><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn"><img src="./close.png" height=20></button></div></div>`; 
+                div.innerHTML = `<input type="text" class="c-cat ext-input" value="${escapeHTML(item.cat||'')}"><input type="text" class="c-desc ext-input" value="${escapeHTML(item.desc||'')}">${actionRow(rmBtn())}`; 
             }
             c.appendChild(div);
             // Restore hidden state for custom section items
@@ -247,15 +255,17 @@ function populateFormWithData(data) {
                 div.classList.add('is-hidden');
                 div.dataset.hidden = 'true';
                 div.querySelectorAll('input, textarea, select, button').forEach(inp => {
-                    if (!inp.classList.contains('hide-btn') && !inp.classList.contains('remove-btn')) {
+                    if (!inp.classList.contains('hide-btn') && !inp.classList.contains('remove-btn') && !inp.classList.contains('move-btn')) {
                         inp.disabled = true;
                     }
                 });
             }
         });
+        if (typeof refreshMoveButtons === 'function') refreshMoveButtons(c);
     });
 
-    // 7. Trigger the visual update
+    // 7. Refresh all move buttons and trigger the visual update
+    if (typeof refreshAllMoveButtons === 'function') refreshAllMoveButtons();
     updatePreview();
 }
 document.getElementById('uploadJsonBtn').addEventListener('change', function(e) {

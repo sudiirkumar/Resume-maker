@@ -5,9 +5,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Resume PDF Generator</title>
-    <!-- (Optional) Bumping ?v=3 to bust cache again just in case -->
-    <link rel="stylesheet" href="style.css?v=3" />
-    <link rel="stylesheet" href="preview.css?v=3" />
+    <!-- (Optional) Bumping ?v=4 to bust cache again just in case -->
+    <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="stylesheet" href="preview.css?v=4" />
 
     <!-- Vercel Web Analytics -->
     <script>
@@ -204,8 +204,6 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     <div id="achievementsList">
                         <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">
-                            <button type="button" onclick="this.parentElement.remove(); updatePreview();"
-                                class="remove-btn" style="width:auto; padding:0 10px;">X</button>
                         </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addAchievement()">
@@ -233,8 +231,6 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                     <div id="interestsList">
                         <div class="list-item" style="display:flex; gap:10px; margin-bottom:8px;">
                             <input type="text" placeholder="Interest" class="int-input" style="flex:1;">
-                            <button type="button" onclick="this.parentElement.remove(); updatePreview();"
-                                class="remove-btn" style="width:auto; padding:0 10px;">X</button>
                         </div>
                     </div>
                     <button type="button" class="add-btn" onclick="addInterest()">
@@ -283,17 +279,6 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
                                     <input type="text" data-field="desc" class="ext-input"
                                         placeholder="Activity details..." style="flex:1;" oninput="updatePreview()" />
                                 </div>
-                            </div>
-
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                                <button type="button" onclick="addExtraLine(this)"
-                                    style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+
-                                    Add Line</button>
-                                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();"
-                                    class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
-                                    <img src="./close.png" height="16">
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -413,12 +398,12 @@ Telephone : +91-XYZ-ABCDEFG    e-mail: ab@lmno.xyz, abc.lmno@gmail.com</textarea
         </div>
     </div>
 
-    <script src="js/state.js?v=2"></script>
-    <script src="js/ui.js?v=2"></script>
-    <script src="js/preview.js?v=2"></script>
-    <script src="js/auth.js?v=2"></script>
-    <script src="js/data.js?v=2"></script>
-    <script src="js/ai.js?v=2"></script>
+    <script src="js/state.js?v=3"></script>
+    <script src="js/ui.js?v=3"></script>
+    <script src="js/preview.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/data.js?v=3"></script>
+    <script src="js/ai.js?v=3"></script>
     
 </body>
 

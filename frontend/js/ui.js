@@ -54,17 +54,25 @@ if (helpModal && !hasSeenHelp()) {
 // ---- Compacted Form Handlers ----
 const HIDE_IMG = '<img src="./hide.png" height="20">';
 const hideBtn = () => `<button type="button" onclick="toggleHideItem(this)" class="hide-btn" title="Toggle hide/show">${HIDE_IMG}</button>`;
-const actionRow = (content) => `<div style="display:flex; justify-content:space-between; align-items:center; grid-column:1/-1;"><div>${hideBtn()}</div><div>${content}</div></div>`;
+const upBtn = () => `<button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>`;
+const downBtn = () => `<button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>`;
+const moveBtns = () => `<div class="move-btns">${upBtn()}${downBtn()}</div>`;
+
+// Bottom action row: Hide (left) | Up/Down (center) | Delete (right)
+const actionRow = (content) => `<div class="item-action-row"><div class="action-left">${hideBtn()}</div><div class="action-center">${moveBtns()}</div><div class="action-right">${content}</div></div>`;
 
 const appendHTML = (id, html, classes = '') => {
     const div = document.createElement('div');
     if (classes) div.className = classes; else div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;';
     div.innerHTML = html;
     document.getElementById(id).appendChild(div);
+    const container = document.getElementById(id);
+    if (typeof refreshMoveButtons === 'function') refreshMoveButtons(container);
     updatePreview();
 };
 
-const rmBtn = (isRow = false) => `<button type="button" onclick="this.parentElement.remove(); updatePreview();" class="remove-btn" ${isRow ? 'style="width:auto; padding:0 10px;">X' : '><img src="./close.png" height=20>'}</button>`;
+// Delete button: image-based for list-items, "X" text for row items
+const rmBtn = (isRow = false) => `<button type="button" onclick="removeItem(this)" class="remove-btn" ${isRow ? 'style="width:auto; padding:0 10px;">X' : '><img src="./close.png" height=20>'}</button>`;
 
 function addEducation() { appendHTML('educationList', `<input type="text" placeholder="Year" data-field="year" class="edu-input"><input type="text" placeholder="Degree/Exam" data-field="degree" class="edu-input"><input type="text" placeholder="Institution/Board" data-field="institution" class="edu-input"><input type="text" placeholder="CGPA/Percentage" data-field="score" class="edu-input">${actionRow(rmBtn())}`, 'list-item'); }
 function addAchievement() { appendHTML('achievementsList', `<input type="text" placeholder="Achievement" class="ach-input" style="flex:1;">${actionRow(rmBtn(true))}`, 'list-item'); }
@@ -73,30 +81,40 @@ function addInterest() { appendHTML('interestsList', `<input type="text" placeho
 function addPOR() { appendHTML('porList', `<input type="text" placeholder="Role" data-field="role" class="por-input"><input type="text" placeholder="Date" data-field="date" class="por-input"><textarea placeholder="Description" data-field="desc" class="por-input" rows="2"></textarea>${actionRow(rmBtn())}`, 'list-item por-item'); }
 function addCustomSkill() { appendHTML('customSkillsList', `<input type="text" placeholder="Category (e.g. Frameworks)" class="skill-cat-input ext-input"><input type="text" placeholder="Skills (e.g. React, Node.js)" class="skill-val-input ext-input">${actionRow(rmBtn())}`, 'list-item custom-skill-item'); }
 function addExtracurricular() {
-    const div = document.createElement('div'); 
+    const div = document.createElement('div');
     div.className = 'list-item extra-item';
-    
+
     div.innerHTML = `
         <input type="text" data-field="category" class="ext-input" placeholder="Category (e.g. Sport Activities:)" oninput="updatePreview()">
-        
+
         <div class="desc-lines">
             <div style="display:flex; gap:8px; margin-bottom:8px;">
                 <input type="text" data-field="desc" class="ext-input" placeholder="Activity details..." style="flex:1;" oninput="updatePreview()">
             </div>
         </div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-            <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
-            <div style="display:flex; gap:6px; align-items:center;">
+
+        <div class="item-action-row" style="margin-top: 5px;">
+            <div class="action-left">
+                <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
+            </div>
+            <div class="action-center">
+                <div class="move-btns">
+                    <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
+                    <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
+                </div>
+            </div>
+            <div class="action-right" style="display:flex; gap:6px; align-items:center;">
                 <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
-                <button type="button" onclick="this.closest('.list-item').remove(); updatePreview();" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
+                <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
                     <img src="./close.png" height=16>
                 </button>
             </div>
         </div>
     `;
-    
-    document.getElementById('extraActivitesList').appendChild(div); 
+
+    document.getElementById('extraActivitesList').appendChild(div);
+    const container = document.getElementById('extraActivitesList');
+    if (typeof refreshMoveButtons === 'function') refreshMoveButtons(container);
     if (typeof updatePreview === 'function') updatePreview();
 }
 // ---- Custom Section Engine ----
@@ -112,21 +130,89 @@ function injectCustomSection(btn) {
     const wrapper = btn.closest('.add-custom-wrapper'), type = wrapper.querySelector('.custom-type-select').value, secId = 'custom-sec-' + Date.now();
     const sec = document.createElement('section'); sec.className = 'custom-section'; sec.id = secId; sec.dataset.type = type;
     sec.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3b82f6; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px;"><input type="text" placeholder="Enter Section Title..." class="custom-sec-title" style="font-size: 1.2rem; font-weight: bold; border: none; outline: none; color: #0f172a; width: 75%; background: transparent;" value="" oninput="updatePreview()"><button type="button" onclick="const w = this.closest('section').nextElementSibling; if(w && w.classList.contains('add-custom-wrapper')) w.remove(); this.closest('section').remove(); updatePreview();" style="color: #ef4444; border: none; background: none; cursor: pointer; font-weight: bold; font-size: 0.9rem;">&times; Remove</button></div><div class="custom-items-container"></div><button type="button" class="add-btn" onclick="addCustomItem('${secId}', '${type}')" style="margin-top: 10px;">+ Add Item</button>`;
-    
+
     wrapper.querySelector('.add-section-controls').style.display = 'none'; wrapper.querySelector('.add-section-divider').style.display = 'flex';
     wrapper.parentNode.insertBefore(sec, wrapper);
-    
+
     const newW = document.createElement('div'); newW.className = 'add-custom-wrapper'; newW.style.cssText = 'margin: 15px 0 25px 0;'; newW.innerHTML = getWrapperHTML();
     sec.insertAdjacentElement('beforebegin', newW); addCustomItem(secId, type);
 }
 
 function addCustomItem(secId, type) {
     const c = document.querySelector(`#${secId} .custom-items-container`), div = document.createElement('div');
-    if (type === 'type1') { div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" placeholder="Sub-heading" class="c-title proj-input"><input type="text" placeholder="Date" class="c-date proj-input"><textarea placeholder="Description" class="c-desc proj-input" rows="3"></textarea>${actionRow(rmBtn())}`; } 
-    else if (type === 'type2') { div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${actionRow(rmBtn(true))}`; } 
+    if (type === 'type1') { div.className = 'list-item project-item custom-item-type1'; div.innerHTML = `<input type="text" placeholder="Sub-heading" class="c-title proj-input"><input type="text" placeholder="Date" class="c-date proj-input"><textarea placeholder="Description" class="c-desc proj-input" rows="3"></textarea>${actionRow(rmBtn())}`; }
+    else if (type === 'type2') { div.style.cssText = 'display:flex; gap:10px; margin-bottom:8px;'; div.innerHTML = `<input type="text" placeholder="Bullet point..." class="c-bullet ach-input" style="flex:1;">${actionRow(rmBtn(true))}`; }
     else if (type === 'type3') { div.className = 'list-item extra-item custom-item-type3'; div.innerHTML = `<input type="text" placeholder="Category" class="c-cat ext-input"><input type="text" placeholder="Details" class="c-desc ext-input">${actionRow(rmBtn())}`; }
-    c.appendChild(div); updatePreview();
+    c.appendChild(div);
+    if (typeof refreshMoveButtons === 'function') refreshMoveButtons(c);
+    updatePreview();
 }
+
+// ---- Enhance initial items from index.html with action rows on load ----
+function enhanceInitialItems() {
+    // Helper to append an action row if the item doesn't already have one
+    const ensureActionRow = (item, rowHTML) => {
+        if (!item.querySelector('.item-action-row')) {
+            const row = document.createElement('div');
+            row.innerHTML = rowHTML;
+            item.appendChild(row.firstElementChild);
+        }
+    };
+
+    // Education, Projects, POR, Custom Skills - image-based delete
+    document.querySelectorAll('#educationList > .list-item').forEach(item => ensureActionRow(item, actionRow(rmBtn())));
+    document.querySelectorAll('#projectsList > .list-item').forEach(item => ensureActionRow(item, actionRow(rmBtn())));
+    document.querySelectorAll('#porList > .list-item').forEach(item => ensureActionRow(item, actionRow(rmBtn())));
+    document.querySelectorAll('#customSkillsList > .list-item').forEach(item => ensureActionRow(item, actionRow(rmBtn())));
+
+    // Achievements, Interests - text "X" delete
+    document.querySelectorAll('#achievementsList > div').forEach(item => ensureActionRow(item, actionRow(rmBtn(true))));
+    document.querySelectorAll('#interestsList > div').forEach(item => ensureActionRow(item, actionRow(rmBtn(true))));
+
+    // Extracurricular - replace existing bottom row with new structure including up/down
+    document.querySelectorAll('#extraActivitesList > .list-item').forEach(item => {
+        // Remove old action row if it doesn't have move buttons
+        const oldRow = item.querySelector('.item-action-row');
+        if (oldRow && !oldRow.querySelector('.move-btns')) {
+            oldRow.remove();
+        }
+        // Also remove old-style bottom rows (the inline-styled div from index.html)
+        const oldInlineRow = item.querySelector('div[style*="justify-content: space-between"]');
+        if (oldInlineRow && !oldInlineRow.classList.contains('item-action-row') && !oldInlineRow.querySelector('.move-btns')) {
+            oldInlineRow.remove();
+        }
+        // Add new action row if not present
+        if (!item.querySelector('.move-btns')) {
+            const newRow = document.createElement('div');
+            newRow.innerHTML = `
+                <div class="item-action-row" style="margin-top: 5px;">
+                    <div class="action-left">
+                        <button type="button" onclick="addExtraLine(this)" style="background:none; border:none; color:#3b82f6; cursor:pointer; font-size:0.9rem; font-weight: bold;">+ Add Line</button>
+                    </div>
+                    <div class="action-center">
+                        <div class="move-btns">
+                            <button type="button" onclick="moveItemUp(this)" class="move-btn move-up-btn" title="Move up" aria-label="Move up">&#9650;</button>
+                            <button type="button" onclick="moveItemDown(this)" class="move-btn move-down-btn" title="Move down" aria-label="Move down">&#9660;</button>
+                        </div>
+                    </div>
+                    <div class="action-right" style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" onclick="toggleHideItem(this)" class="hide-btn" style="pointer-events:auto;" title="Toggle hide/show"><img src="./hide.png" height="16"></button>
+                        <button type="button" onclick="removeItem(this)" class="remove-btn" style="width:auto; margin:0; padding: 2px 5px;">
+                            <img src="./close.png" height=16>
+                        </button>
+                    </div>
+                </div>
+            `;
+            item.appendChild(newRow.firstElementChild);
+        }
+    });
+
+    // Refresh all move buttons after enhancement
+    if (typeof refreshAllMoveButtons === 'function') refreshAllMoveButtons();
+}
+
+// Run enhancement after DOM is ready
+enhanceInitialItems();
 
 // ---- Resizer Engine ----
 const resizer = document.getElementById('dragMe'), leftPanel = document.getElementById('leftPanel'), rightPanel = document.getElementById('rightPanel');
