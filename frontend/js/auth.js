@@ -191,6 +191,12 @@ async function saveResumeToCloud(token, options = {}) {
     const shouldUpdateButton = !options.silent && Boolean(openAuthBtn);
     const originalText = shouldUpdateButton ? openAuthBtn.innerHTML : '';
 
+    // Give immediate feedback: disable the button and show "Saving..." while the request is in flight.
+    if (shouldUpdateButton) {
+        openAuthBtn.disabled = true;
+        openAuthBtn.textContent = 'Saving...';
+    }
+
     try {
         // 1. Grab the perfectly formatted data from your existing data.js logic!
         const resumeData = getResumeData();

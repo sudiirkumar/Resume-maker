@@ -4,7 +4,7 @@
 const RESUME_AUTOSAVE_KEY = 'resume_autosave_enabled';
 const RESUME_DRAFT_KEY = 'resume_local_draft';
 const RESUME_HISTORY_LIMIT = 10;
-const RESUME_HISTORY_DELAY_MS = 5000;
+const RESUME_HISTORY_DELAY_MS = 2000;
 
 const ResumeWorkflow = {
     autosaveEnabled: localStorage.getItem(RESUME_AUTOSAVE_KEY) !== 'false',

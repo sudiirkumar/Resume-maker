@@ -169,6 +169,16 @@ h2 { border: none; padding: 0; margin: 0 0 14px; color: #0f172a; font-size: 1rem
     box-shadow: 0 12px 20px rgba(37, 99, 235, 0.10);
 }
 
+.toolbar-btn:disabled,
+.toolbar-toggle:disabled,
+.toolbar-danger:disabled,
+.toolbar-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
 .toolbar-danger {
     background: rgba(255, 247, 247, 0.9);
     color: #475569;
