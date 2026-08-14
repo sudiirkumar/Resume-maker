@@ -6,7 +6,7 @@ from typing import Any, Dict
 import httpx
 from fastapi import HTTPException, status
 
-DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 DEFAULT_SUMMARY_WORD_COUNT = int(os.getenv("AI_SUMMARY_DEFAULT_WORDS", "60"))
