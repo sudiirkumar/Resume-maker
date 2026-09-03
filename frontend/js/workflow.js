@@ -7,7 +7,7 @@ const RESUME_HISTORY_LIMIT = 10;
 const RESUME_HISTORY_DELAY_MS = 2000;
 
 const ResumeWorkflow = {
-    autosaveEnabled: localStorage.getItem(RESUME_AUTOSAVE_KEY) !== 'false',
+    autosaveEnabled: localStorage.getItem(RESUME_AUTOSAVE_KEY) === 'true',
     history: [],
     index: -1,
     pendingTimer: null,
