@@ -63,6 +63,19 @@ The achievements and interests sections are bullet-style lists, so each visible 
 
 The on-page Help modal covers quick start, JSON workflows, cloud sync, and AI tools. It opens automatically the first time a browser sees the app, and can be reopened with the Help button.
 
+## Formatting Shortcuts
+
+Use these shortcuts in text fields and descriptions:
+
+- `Ctrl/Cmd+B` bold
+- `Ctrl/Cmd+I` italic
+- `Ctrl/Cmd+U` underline
+- `Ctrl/Cmd+Shift+8` unordered list
+- `Ctrl/Cmd+Shift+7` ordered list
+- `Ctrl/Cmd+K` hyperlink for selected text
+
+For hyperlinks, enter an `http://`, `https://`, or `mailto:` URL. Autosave is off by default and can be enabled from the toolbar.
+
 ## Notes For Development
 
 - `backend/main.py` hosts the API routes and static frontend.
