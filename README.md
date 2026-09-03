@@ -37,6 +37,8 @@ Create a root `.env` file with the values you want to use:
 - `GROQ_API_KEY` for AI rewrite/review
 - `GROQ_MODEL` for the Groq model name
 - `GROQ_API_URL` if you need a custom Groq endpoint
+- `GROQ_REWRITE_MAX_TOKENS` for the rewrite output limit (default `2048`)
+- `GROQ_REVIEW_MAX_TOKENS` for the full-resume review output limit (default `3072`)
 - `AI_SUMMARY_DEFAULT_WORDS` for the default summary length
 
 If MongoDB is unavailable, the app still runs with local editing and JSON export/import. If Groq is not configured, the AI controls stay hidden.

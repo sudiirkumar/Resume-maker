@@ -1,4 +1,5 @@
 import bcrypt
+import logging
 from datetime import datetime, timedelta
 from jose import jwt
 import os
@@ -13,6 +14,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "super-secret-development-key-change-me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 
+logger = logging.getLogger(__name__)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Checks if a plain text password matches the hashed one."""
@@ -63,11 +65,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> models.User:
         if user_id is None:
             raise credentials_exception
     except jwt.JWTError:
+        logger.warning("token_rejected reason=invalid_jwt")
         raise credentials_exception
         
     # Fetch the user from MongoDB Atlas using the ID from the token
-    user = await models.User.get(PydanticObjectId(user_id))
+    try:
+        user = await models.User.get(PydanticObjectId(user_id))
+    except (TypeError, ValueError):
+        logger.warning("token_rejected reason=invalid_user_id")
+        raise credentials_exception
     if user is None:
+        logger.warning("token_rejected reason=user_not_found")
         raise credentials_exception
         
     return user

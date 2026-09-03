@@ -1,7 +1,8 @@
 import json
+import logging
 import os
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import httpx
 from fastapi import HTTPException, status
@@ -10,6 +11,10 @@ DEFAULT_GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
 DEFAULT_SUMMARY_WORD_COUNT = int(os.getenv("AI_SUMMARY_DEFAULT_WORDS", "60"))
+DEFAULT_REWRITE_MAX_TOKENS = 2048
+DEFAULT_REVIEW_MAX_TOKENS = 3072
+MAX_RETRIES = 2
+logger = logging.getLogger(__name__)
 
 FORMAT_AND_SCOPE_SUFFIX = (
     " If you need formatting, you may use only <b></b>, <i></i>, and <u></u>. "
@@ -75,6 +80,22 @@ def ai_rewrite_ready() -> bool:
     return bool(GROQ_API_KEY)
 
 
+def get_int_setting(name: str, default: int, minimum: int, maximum: int) -> int:
+    try:
+        value = int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    return max(minimum, min(value, maximum))
+
+
+def get_float_setting(name: str, default: float, minimum: float, maximum: float) -> float:
+    try:
+        value = float(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    return max(minimum, min(value, maximum))
+
+
 def build_section_context_payload(request_data: Dict[str, Any]) -> str:
     payload = {
         "field_label": request_data.get("field_label", ""),
@@ -101,8 +122,11 @@ def build_messages(request_data: Dict[str, Any]) -> list[Dict[str, str]]:
     context_payload = build_section_context_payload(request_data)
     user_prompt = (
         "Rewrite only the target field from the following resume section context. "
-        "Use the surrounding data for context, but return only the corrected target text in plain English. "
-        "Focus on the paragraph content, not dates, headings, or other layout-only elements.\n\n"
+        "Use surrounding data only to understand context and avoid repeating it in the answer. "
+        "Preserve every factual detail present in the target, including technologies, quantities, names, and outcomes. "
+        "Never invent or infer achievements. Return only the final target text, with no preamble, explanation, or quotation marks. "
+        "Keep the same number of logical paragraphs or bullet lines unless the requested action requires condensation. "
+        "Focus on paragraph content, not dates, headings, or layout-only elements.\n\n"
         f"{context_payload}"
     )
 
@@ -143,48 +167,111 @@ def sanitize_resume_context(resume_context: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def extract_response_text(response_json: Dict[str, Any]) -> tuple[str, Optional[str]]:
+    if not isinstance(response_json, dict):
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Groq returned an unexpected response format.",
+        )
+    choices = response_json.get("choices") or []
+    if not choices:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Groq returned an empty response.",
+        )
+
+    choice = choices[0] or {}
+    message = choice.get("message") or {}
+    content = message.get("content") or ""
+    if isinstance(content, list):
+        content = "".join(
+            part.get("text", "") if isinstance(part, dict) else str(part)
+            for part in content
+        )
+    if not isinstance(content, str):
+        content = str(content)
+    return content, choice.get("finish_reason")
+
+
+async def call_groq(messages: list[Dict[str, str]], max_tokens: int, error_label: str) -> tuple[str, Optional[str]]:
+    payload = {
+        "model": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL),
+        "messages": messages,
+        "temperature": get_float_setting("GROQ_TEMPERATURE", 0.2, 0.0, 2.0),
+        "max_tokens": max_tokens,
+    }
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    last_error = None
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0)) as client:
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                response = await client.post(GROQ_API_URL, headers=headers, json=payload)
+                if response.is_success:
+                    logger.info("groq_request_succeeded operation=%s attempt=%s", error_label, attempt + 1)
+                    try:
+                        response_json = response.json()
+                    except ValueError as exc:
+                        raise HTTPException(
+                            status_code=status.HTTP_502_BAD_GATEWAY,
+                            detail="Groq returned an invalid JSON response.",
+                        ) from exc
+                    return extract_response_text(response_json)
+                if response.status_code < 500 and response.status_code != 429:
+                    logger.error(
+                        "groq_request_failed operation=%s attempt=%s status=%s retryable=false",
+                        error_label, attempt + 1, response.status_code,
+                    )
+                    break
+                last_error = f"status {response.status_code}"
+                logger.warning(
+                    "groq_request_retry operation=%s attempt=%s status=%s",
+                    error_label, attempt + 1, response.status_code,
+                )
+            except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                last_error = str(exc)
+                logger.warning(
+                    "groq_request_retry operation=%s attempt=%s error=%s",
+                    error_label, attempt + 1, type(exc).__name__,
+                )
+
+            if attempt < MAX_RETRIES:
+                continue
+
+    logger.error("groq_request_failed operation=%s error=%s", error_label, last_error or "unknown")
+    raise HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=f"Groq request failed while {error_label}." + (f" ({last_error})" if last_error else ""),
+    )
+
+
 async def rewrite_resume_text(request_data: Dict[str, Any]) -> str:
     if not ai_rewrite_ready():
+        logger.warning("ai_rewrite_unavailable reason=missing_api_key")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI rewrite is not configured on this backend.",
         )
 
     messages = build_messages(request_data)
-    payload = {
-        "model": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL),
-        "messages": messages,
-        "temperature": float(os.getenv("GROQ_TEMPERATURE", "0.2")),
-        "max_tokens": int(os.getenv("GROQ_MAX_TOKENS", "1024")),
-    }
-
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    async with httpx.AsyncClient(timeout=45.0) as client:
-        response = await client.post(GROQ_API_URL, headers=headers, json=payload)
-
-    if not response.is_success:
+    content, finish_reason = await call_groq(
+        messages,
+        get_int_setting("GROQ_REWRITE_MAX_TOKENS", DEFAULT_REWRITE_MAX_TOKENS, 256, 8192),
+        "rewriting the resume text",
+    )
+    if finish_reason == "length":
+        logger.warning("ai_rewrite_failed reason=output_limit")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Groq request failed while rewriting the resume text.",
+            detail="The AI rewrite reached its output limit. Try a shorter field or increase GROQ_REWRITE_MAX_TOKENS.",
         )
-
-    response_json = response.json()
-    choices = response_json.get("choices") or []
-    if not choices:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Groq returned an empty rewrite response.",
-        )
-
-    message = choices[0].get("message") or {}
-    content = message.get("content") or ""
     rewritten_text = clean_model_output(content)
 
     if not rewritten_text:
+        logger.error("ai_rewrite_failed reason=empty_response")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Groq returned no usable text.",
@@ -217,46 +304,28 @@ def build_resume_review_messages(request_data: Dict[str, Any]) -> list[Dict[str,
 
 async def review_resume_text(request_data: Dict[str, Any]) -> str:
     if not ai_rewrite_ready():
+        logger.warning("ai_review_unavailable reason=missing_api_key")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI review is not configured on this backend.",
         )
 
     messages = build_resume_review_messages(request_data)
-    payload = {
-        "model": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL),
-        "messages": messages,
-        "temperature": float(os.getenv("GROQ_TEMPERATURE", "0.2")),
-        "max_tokens": int(os.getenv("GROQ_MAX_TOKENS", "1024")),
-    }
-
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    async with httpx.AsyncClient(timeout=45.0) as client:
-        response = await client.post(GROQ_API_URL, headers=headers, json=payload)
-
-    if not response.is_success:
+    content, finish_reason = await call_groq(
+        messages,
+        get_int_setting("GROQ_REVIEW_MAX_TOKENS", DEFAULT_REVIEW_MAX_TOKENS, 512, 8192),
+        "reviewing the resume",
+    )
+    if finish_reason == "length":
+        logger.warning("ai_review_failed reason=output_limit")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Groq request failed while reviewing the resume.",
+            detail="The AI review reached its output limit. Try again or increase GROQ_REVIEW_MAX_TOKENS.",
         )
-
-    response_json = response.json()
-    choices = response_json.get("choices") or []
-    if not choices:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Groq returned an empty review response.",
-        )
-
-    message = choices[0].get("message") or {}
-    content = message.get("content") or ""
     review_text = clean_plain_text_output(content)
 
     if not review_text:
+        logger.error("ai_review_failed reason=empty_response")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Groq returned no usable review text.",

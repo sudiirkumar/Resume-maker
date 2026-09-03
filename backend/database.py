@@ -6,6 +6,8 @@ from pymongo import AsyncMongoClient
 
 import backend.models as models
 
+logger = logging.getLogger(__name__)
+
 # Load environment variables from the .env file into the system
 load_dotenv()
 
@@ -24,7 +26,7 @@ async def init_db():
     # A quick safety check to ensure the .env file is being read properly
     if not MONGODB_URL:
         DB_READY = False
-        logging.warning("MONGODB_URI is not set; running without database access.")
+        logger.warning("database_unavailable reason=MONGODB_URI_not_set")
         return False
 
     try:
@@ -43,5 +45,5 @@ async def init_db():
         return True
     except Exception as exc:
         DB_READY = False
-        logging.warning("MongoDB init failed; running without database access: %s", exc)
+        logger.exception("database_unavailable reason=initialization_failed error=%s", type(exc).__name__)
         return False
