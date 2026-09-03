@@ -17,7 +17,7 @@ MAX_RETRIES = 2
 logger = logging.getLogger(__name__)
 
 FORMAT_AND_SCOPE_SUFFIX = (
-    " If you need formatting, you may use only <b></b>, <i></i>, and <u></u>. "
+    " If you need formatting, you may use only <b></b>, <i></i>, <u></u>, <ul></ul>, <ol></ol>, <li></li>, and <a href=\"https://...\"></a>. "
     "Do not use any other markdown or formatting syntax. "
     "Analyze the paragraphs only; do not judge dates, headings, or other formatting elements because those are part of the resume structure."
 )

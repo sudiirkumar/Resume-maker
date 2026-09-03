@@ -100,7 +100,22 @@ function escapeHTML(str) {
               .replace(new RegExp(LT_ENT + 'em' + GT_ENT, 'gi'), LT + 'em' + GT)
               .replace(new RegExp(LT_ENT + '/em' + GT_ENT, 'gi'), LT + '/em' + GT)
               .replace(new RegExp(LT_ENT + 'u' + GT_ENT, 'gi'), LT + 'u' + GT)
-              .replace(new RegExp(LT_ENT + '/u' + GT_ENT, 'gi'), LT + '/u' + GT);
+              .replace(new RegExp(LT_ENT + '/u' + GT_ENT, 'gi'), LT + '/u' + GT)
+              .replace(new RegExp(LT_ENT + 'ul' + GT_ENT, 'gi'), LT + 'ul' + GT)
+              .replace(new RegExp(LT_ENT + '/ul' + GT_ENT, 'gi'), LT + '/ul' + GT)
+              .replace(new RegExp(LT_ENT + 'ol' + GT_ENT, 'gi'), LT + 'ol' + GT)
+              .replace(new RegExp(LT_ENT + '/ol' + GT_ENT, 'gi'), LT + '/ol' + GT)
+              .replace(new RegExp(LT_ENT + 'li' + GT_ENT, 'gi'), LT + 'li' + GT)
+              .replace(new RegExp(LT_ENT + '/li' + GT_ENT, 'gi'), LT + '/li' + GT)
+              .replace(new RegExp(LT_ENT + "a\\s+href=[\\\"']((?:https?:\\/\\/|mailto:)[^\\\"']+)[\\\"']" + GT_ENT, 'gi'), LT + 'a href="$1"' + GT)
+              .replace(new RegExp(LT_ENT + '/a' + GT_ENT, 'gi'), LT + '/a' + GT);
+}
+
+function formatRichText(str) {
+    return escapeHTML(str)
+        .replace(/\n/g, '<br>')
+        .replace(/(<(?:ul|ol)>|<\/li>)<br>/gi, '$1')
+        .replace(/<br>(<\/(?:ul|ol)>)/gi, '$1');
 }
 
 // ── Text formatting helpers (Ctrl+B/I/U) ──
@@ -108,6 +123,11 @@ const FORMAT_TAGS = {
     b: { open: '<b>', close: '</b>', attr: 'data-bold-open' },
     i: { open: '<i>', close: '</i>', attr: 'data-italic-open' },
     u: { open: '<u>', close: '</u>', attr: 'data-underline-open' }
+};
+
+const LIST_SHORTCUTS = {
+    '8': { open: '<ul>\n', close: '\n</ul>' },
+    '7': { open: '<ol>\n', close: '\n</ol>' }
 };
 
 // Remove empty formatting tag pairs like <b></b>, <i></i>, <u></u> (case-insensitive)
@@ -141,6 +161,39 @@ function wrapSelection(field, openTag, closeTag) {
     field.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+function wrapSelectionInList(field, listTags) {
+    const start = field.selectionStart;
+    const end = field.selectionEnd;
+    const selected = field.value.substring(start, end);
+    const lines = selected.split(/\r?\n/);
+    const listItems = lines.map(line => `<li>${line}</li>`).join('\n');
+    const list = `${listTags.open}${listItems}${listTags.close}`;
+    field.value = field.value.substring(0, start) + list + field.value.substring(end);
+    const newPos = start + list.length;
+    field.setSelectionRange(newPos, newPos);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function wrapSelectionInLink(field) {
+    const url = window.prompt('Enter a URL (https://, http://, or mailto:)');
+    if (!url) return;
+
+    const trimmedUrl = url.trim();
+    if (!/^(?:https?:\/\/|mailto:)[^\s"<>]+$/i.test(trimmedUrl)) {
+        window.alert('Please enter a valid http, https, or mailto URL.');
+        return;
+    }
+
+    const start = field.selectionStart;
+    const end = field.selectionEnd;
+    const selected = field.value.substring(start, end) || trimmedUrl;
+    const link = `<a href="${trimmedUrl}">${selected}</a>`;
+    field.value = field.value.substring(0, start) + link + field.value.substring(end);
+    const newPos = start + link.length;
+    field.setSelectionRange(newPos, newPos);
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 // Toggle open/close tag at cursor position (no selection)
 function toggleFormatTag(field, openTag, closeTag, attrName) {
     const isOpen = field.getAttribute(attrName) === 'true';
@@ -163,7 +216,10 @@ document.addEventListener('keydown', (event) => {
     const ctrl = event.ctrlKey || event.metaKey;
     if (!ctrl) return;
     const key = event.key.toLowerCase();
-    if (key !== 'b' && key !== 'i' && key !== 'u') return;
+    const isLinkShortcut = key === 'k' && !event.shiftKey;
+    const listShortcutKey = event.code === 'Digit7' ? '7' : event.code === 'Digit8' ? '8' : null;
+    const isListShortcut = event.shiftKey && Boolean(listShortcutKey);
+    if (key !== 'b' && key !== 'i' && key !== 'u' && !isListShortcut && !isLinkShortcut) return;
 
     const field = event.target;
     if (!field || !field.matches) return;
@@ -172,6 +228,26 @@ document.addEventListener('keydown', (event) => {
     if (!field.closest('#resumeForm')) return;
 
     event.preventDefault();
+
+    if (isLinkShortcut) {
+        wrapSelectionInLink(field);
+        return;
+    }
+
+    if (isListShortcut) {
+        const listTags = LIST_SHORTCUTS[listShortcutKey];
+        if (field.selectionStart !== field.selectionEnd) {
+            wrapSelectionInList(field, listTags);
+        } else {
+            const pos = field.selectionStart;
+            const list = `${listTags.open}<li></li>${listTags.close}`;
+            field.value = field.value.substring(0, pos) + list + field.value.substring(pos);
+            const newPos = pos + listTags.open.length + '<li>'.length;
+            field.setSelectionRange(newPos, newPos);
+            field.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        return;
+    }
 
     const fmt = FORMAT_TAGS[key];
     if (!fmt) return;
