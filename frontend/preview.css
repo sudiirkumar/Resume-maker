@@ -205,7 +205,7 @@
 
 /* UNIFIED BULLET ALIGNMENT SYSTEM (For Achievements, Interests) */
 .bullet-list { 
-    margin: 4px 0 8px 0; 
+    margin: 4px 0 0 0;
     padding-left: 0; /* Removes browser default list padding */
     list-style-type: none; /* Disables browser default bullets */
 }
@@ -213,8 +213,8 @@
     position: relative;
     padding-left: 24px; /* Locks text exactly 24px from left margin */
     margin-bottom: 4px; 
+    line-height: 1.225;
     text-align: justify; 
-    text-align-last: justify;
 }
 .bullet-list li::before {
     content: "•";
@@ -226,13 +226,13 @@
 
 /* Lists entered inside rich text fields retain normal ordered and unordered markers. */
 .item-desc ul, .item-desc ol {
-    margin: 4px 0 4px 24px;
+    margin: 4px 0 0 24px;
     padding-left: 18px;
 }
 
 .item-desc ul { list-style-type: disc; }
 .item-desc ol { list-style-type: decimal; }
-.item-desc li { margin-bottom: 2px; text-align: justify; text-align-last: justify; }
+.item-desc li { margin-bottom: 2px; line-height: 1.225; text-align: justify; }
 .item-desc a { color: inherit; text-decoration: underline; }
 
 /* ════════════════════════════════════════
@@ -260,7 +260,7 @@
     font-style: italic; font-size: 11.4pt; white-space: nowrap; margin-left: 12px; 
 }
 .item-desc { 
-    margin: 2px 0 0 0; line-height: 1.45; font-size: 11.4pt; text-align: justify; text-align-last: justify;
+    margin: 2px 0 0 0; line-height: 1.45; font-size: 11.4pt; text-align: justify;
 }
 
 /* ════════════════════════════════════════
