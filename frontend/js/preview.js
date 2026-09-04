@@ -67,7 +67,7 @@ function updatePreview() {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Other Projects'; chunks.push({ el: t, type: 'title' });
                 projs.forEach(i => {
                     const b = document.createElement('div'); b.className = 'item-block'; const pD = formatRichText(i.querySelector('[data-field="desc"]').value);
-                    b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('[data-field="title"]').value)}</span><span class="item-date">${escapeHTML(i.querySelector('[data-field="date"]').value)}</span></div>${pD ? `<div class="item-desc">${pD}</div>` : ''}`;
+                    b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('[data-field="title"]').value)}</span><span class="item-date">${escapeHTML(i.querySelector('[data-field="date"]').value)}</span></div>${pD ? `<p class="item-desc">${pD.split('\n').join('<br>')}</p>` : ''}`;
                     chunks.push({ el: b, type: 'block' });
                 });
             }
@@ -98,7 +98,7 @@ function updatePreview() {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Positions of Responsibility'; chunks.push({ el: t, type: 'title' });
                 pors.forEach(i => {
                     const b = document.createElement('div'); b.className = 'item-block'; const pD = formatRichText(i.querySelector('[data-field="desc"]').value);
-                    b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('[data-field="role"]').value)}</span><span class="item-date">${escapeHTML(i.querySelector('[data-field="date"]').value)}</span></div>${pD ? `<div class="item-desc">${pD}</div>` : ''}`;
+                    b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('[data-field="role"]').value)}</span><span class="item-date">${escapeHTML(i.querySelector('[data-field="date"]').value)}</span></div>${pD ? `<p class="item-desc">${pD.split('\n').join('<br>')}</p>` : ''}`;
                     chunks.push({ el: b, type: 'block' });
                 });
             }
@@ -140,7 +140,7 @@ function updatePreview() {
                     chunks.push({ el: t, type: 'title' });
                     items.forEach(i => {
                         const b = document.createElement('div'); b.className = 'item-block'; const pD = formatRichText(i.querySelector('.c-desc').value);
-                        b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('.c-title').value)}</span><span class="item-date">${escapeHTML(i.querySelector('.c-date').value)}</span></div>${pD ? `<div class="item-desc">${pD}</div>` : ''}`;
+                        b.innerHTML = `<span class="item-bullet">&bull;</span><div class="item-header"><span class="item-title">${escapeHTML(i.querySelector('.c-title').value)}</span><span class="item-date">${escapeHTML(i.querySelector('.c-date').value)}</span></div>${pD ? `<p class="item-desc">${pD.split('\n').join('<br>')}</p>` : ''}`;
                         chunks.push({ el: b, type: 'block' });
                     });
                 }
