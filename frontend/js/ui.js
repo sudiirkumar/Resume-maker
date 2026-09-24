@@ -6,7 +6,15 @@ console.log("Loaded ui.js successfully");
 
 const helpModal = document.getElementById('helpModal');
 const openHelpBtn = document.getElementById('openHelpBtn');
+const openFeedbackBtn = document.getElementById('openFeedbackBtn');
 const closeHelpBtn = document.getElementById('closeHelpBtn');
+const feedbackModal = document.getElementById('feedbackModal');
+const closeFeedbackBtn = document.getElementById('closeFeedbackBtn');
+const feedbackForm = document.getElementById('feedbackForm');
+const feedbackName = document.getElementById('feedbackName');
+const feedbackText = document.getElementById('feedbackText');
+const feedbackSubmitBtn = document.getElementById('feedbackSubmitBtn');
+const feedbackMessage = document.getElementById('feedbackMessage');
 const helpSeenCookie = 'resume_help_seen=1';
 
 function openHelpModal() {
@@ -26,6 +34,49 @@ function markHelpSeen() {
 }
 
 if (openHelpBtn) openHelpBtn.addEventListener('click', openHelpModal);
+if (openFeedbackBtn) openFeedbackBtn.addEventListener('click', () => {
+    feedbackMessage.className = 'auth-message hidden';
+    feedbackModal.classList.remove('hidden');
+    feedbackName.focus();
+});
+if (closeFeedbackBtn) closeFeedbackBtn.addEventListener('click', () => feedbackModal.classList.add('hidden'));
+if (feedbackModal) feedbackModal.addEventListener('click', (event) => {
+    if (event.target === feedbackModal) feedbackModal.classList.add('hidden');
+});
+if (feedbackText) feedbackText.addEventListener('input', () => {
+    feedbackText.style.height = 'auto';
+    feedbackText.style.height = `${feedbackText.scrollHeight}px`;
+});
+if (feedbackForm) feedbackForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    feedbackSubmitBtn.disabled = true;
+    feedbackSubmitBtn.textContent = 'Submitting...';
+    feedbackMessage.className = 'auth-message hidden';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: feedbackName.value.trim(),
+                feedback: feedbackText.value.trim(),
+            }),
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.detail || 'Feedback could not be submitted.');
+
+        feedbackMessage.textContent = 'Thank you. Your feedback was submitted.';
+        feedbackMessage.className = 'auth-message success';
+        feedbackForm.reset();
+        feedbackText.style.height = '';
+    } catch (error) {
+        feedbackMessage.textContent = error.message;
+        feedbackMessage.className = 'auth-message error';
+    } finally {
+        feedbackSubmitBtn.disabled = false;
+        feedbackSubmitBtn.textContent = 'Submit Feedback';
+    }
+});
 if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => {
     markHelpSeen();
     closeHelpModal();
@@ -43,6 +94,9 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && helpModal && !helpModal.classList.contains('hidden')) {
         markHelpSeen();
         closeHelpModal();
+    }
+    if (event.key === 'Escape' && feedbackModal && !feedbackModal.classList.contains('hidden')) {
+        feedbackModal.classList.add('hidden');
     }
 });
 

@@ -125,6 +125,31 @@
             <button id="closeHelpBtn" class="close-btn" aria-label="Close help">&times;</button>
         </div>
     </div>
+    <div id="feedbackModal" class="modal-overlay hidden">
+        <div class="modal-content feedback-modal-content">
+            <div class="modal-header feedback-modal-header">
+                <div>
+                    <h2 class="help-modal-title">Share your feedback</h2>
+                    <p class="help-modal-subtitle">Tell us how we can make Resume Maker better.</p>
+                </div>
+            </div>
+            <div class="modal-body feedback-modal-body">
+                <form id="feedbackForm">
+                    <div class="input-group">
+                        <label for="feedbackName">Name</label>
+                        <input type="text" id="feedbackName" name="name" maxlength="120" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="feedbackText">Feedback</label>
+                        <textarea id="feedbackText" name="feedback" rows="5" maxlength="10000" required></textarea>
+                    </div>
+                    <div id="feedbackMessage" class="auth-message hidden" role="status"></div>
+                    <button type="submit" id="feedbackSubmitBtn" class="action-btn auth-submit">Submit Feedback</button>
+                </form>
+            </div>
+            <button id="closeFeedbackBtn" type="button" class="close-btn" aria-label="Close feedback">&times;</button>
+        </div>
+    </div>
     <div class="app-layout">
         <div class="form-panel" id="leftPanel">
             <div class="panel-header">
@@ -132,6 +157,7 @@
                     <p class="panel-kicker">Resume builder</p>
                     <h1>Resume Generator</h1>
                 </div>
+                <button id="openFeedbackBtn" type="button" class="feedback-btn" aria-label="Give Feedback">Feedback</button>
                 <button id="openHelpBtn" type="button" class="help-btn" aria-label="Open help instructions">Help?</button>
             </div>
 

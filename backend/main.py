@@ -15,6 +15,7 @@ import backend.models as models
 import backend.schemas as schemas
 from backend.auth import create_access_token, get_current_user, get_password_hash, verify_password
 from backend.database import init_db, is_db_ready
+from backend.feedback import send_feedback_email
 from backend.llm import ai_rewrite_ready, rewrite_resume_text, review_resume_text
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -173,6 +174,20 @@ async def review_resume(payload: schemas.ResumeReviewRequest):
         "model": os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
         "review_type": payload.review_type,
     }
+
+@app.post("/api/feedback")
+async def submit_feedback(payload: schemas.FeedbackRequest):
+    try:
+        await send_feedback_email(payload.name.strip(), payload.feedback.strip())
+    except (RuntimeError, ValueError) as exc:
+        logger.error("feedback_rejected reason=configuration error=%s", exc)
+        raise HTTPException(status_code=503, detail="Feedback email is not configured") from exc
+    except OSError:
+        logger.exception("feedback_delivery_failed")
+        raise HTTPException(status_code=502, detail="Feedback could not be delivered") from None
+
+    logger.info("feedback_delivered")
+    return {"message": "Feedback submitted successfully"}
 
 # ==========================================
 # 🔐 AUTHENTICATION ROUTES

@@ -48,6 +48,11 @@ class ResumeReviewRequest(BaseModel):
     resume_context: Dict[str, Any] = Field(default_factory=dict)
 
 
+class FeedbackRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=120)
+    feedback: str = Field(..., min_length=1, max_length=10000)
+
+
 class ResumeReviewResponse(BaseModel):
     review_text: str
     provider: str
