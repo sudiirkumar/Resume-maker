@@ -15,7 +15,8 @@ dependencies = [
     "pydantic[email]",
     "python-multipart",
     "httpx",
-    "pymongo"
+    "pymongo",
+    "resend"
 ]
 
 [tool.vercel]

@@ -1,26 +1,21 @@
 import asyncio
 import os
-import smtplib
-from email.message import EmailMessage
 from html import escape
 
 from dotenv import load_dotenv
+import resend
 
 
 load_dotenv()
 
 
 def _send_feedback_email(name: str, feedback: str) -> None:
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "465"))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
+    resend_api_key = os.getenv("RESEND_API_KEY")
     receiver_email = os.getenv("FEEDBACK_RECEIVER_EMAIL")
 
     missing = [
         variable for variable, value in {
-            "SMTP_USER": smtp_user,
-            "SMTP_PASSWORD": smtp_password,
+            "RESEND_API_KEY": resend_api_key,
             "FEEDBACK_RECEIVER_EMAIL": receiver_email,
         }.items() if not value
     ]
@@ -29,13 +24,7 @@ def _send_feedback_email(name: str, feedback: str) -> None:
 
     safe_name = escape(name)
     safe_feedback = escape(feedback).replace("\n", "<br>")
-    message = EmailMessage()
-    message["Subject"] = f"RESUME-MAKER FEEDBACK - {name}"
-    message["From"] = smtp_user
-    message["To"] = receiver_email
-    message.set_content(f"Feedback from {name}:\n\n{feedback}")
-    message.add_alternative(
-        f"""\
+    html = f"""\
         <!doctype html>
         <html>
         <body style="margin:0;padding:24px;background:#f1f5f9;font-family:Arial,sans-serif;color:#1e293b;">
@@ -53,19 +42,18 @@ def _send_feedback_email(name: str, feedback: str) -> None:
             </div>
         </body>
         </html>
-        """,
-        subtype="html",
-    )
+        """
 
-    if smtp_port == 465:
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20) as smtp:
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(message)
-    else:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as smtp:
-            smtp.starttls()
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(message)
+    resend.api_key = resend_api_key
+    try:
+        resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": receiver_email,
+            "subject": f"RESUME-MAKER FEEDBACK - {name}",
+            "html": html,
+        })
+    except Exception as exc:
+        raise OSError("Resend could not deliver the feedback email") from exc
 
 
 async def send_feedback_email(name: str, feedback: str) -> None:
