@@ -292,6 +292,8 @@ authSubmitBtn.addEventListener('click', async () => {
             syncCloudActionVisibility();
             setTimeout(() => authModal.classList.add('hidden'), 1000);  
 
+            loadResume.click();
+
 
         } else {
             // REGISTER: FastAPI expects a standard JSON payload
