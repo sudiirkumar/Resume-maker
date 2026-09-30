@@ -5,6 +5,27 @@ body { background: radial-gradient(circle at top, #f8fafc 0%, #eef2ff 52%, #f8fa
 
 .hidden { display: none !important; }
 
+.education-description-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0 12px;
+}
+
+.education-description-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #334155;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+#inp-education-semester {
+    width: 72px;
+    padding: 7px 9px;
+}
+
 /* The Workspace Layout */
 .app-layout { display: flex; height: 100vh; width: 100vw; background: #ffffff; }
 

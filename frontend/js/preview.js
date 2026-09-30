@@ -47,11 +47,23 @@ function updatePreview() {
 
         if (sec.querySelector('#educationList')) {
             const items = Array.from(sec.querySelectorAll('#educationList .list-item')).filter(i => i.dataset.hidden !== 'true');
-            if (items.some(i => i.querySelector('[data-field="year"]').value)) {
+            const hasEducationTable = items.some(i => i.querySelector('[data-field="year"]').value.trim());
+            const descriptionControls = document.getElementById('educationDescriptionControls');
+            if (descriptionControls) descriptionControls.classList.toggle('hidden', !hasEducationTable);
+            if (hasEducationTable) {
                 const t = document.createElement('div'); t.className = 'section-title'; t.textContent = 'Educational Qualification'; chunks.push({ el: t, type: 'title' });
                 const table = document.createElement('table'); table.className = 'edu-table'; let tbody = '';
                 items.forEach(i => { tbody += `<tr><td>${escapeHTML(i.querySelector('[data-field="year"]').value)}</td><td>${escapeHTML(i.querySelector('[data-field="degree"]').value)}</td><td>${escapeHTML(i.querySelector('[data-field="institution"]').value)}</td><td>${escapeHTML(i.querySelector('[data-field="score"]').value)}</td></tr>`; });
-                table.innerHTML = `<thead><tr><th>Year</th><th>Degree/Examination</th><th>Institution/Board</th><th>CGPA/Percentage</th></tr></thead><tbody>${tbody}</tbody>`; chunks.push({ el: table, type: 'block' });
+                table.innerHTML = `<thead><tr><th>Year</th><th>Degree/Examination</th><th>Institution/Board</th><th>CGPA/Percentage</th></tr></thead><tbody>${tbody}</tbody>`;
+                chunks.push({ el: table, type: 'block' });
+                const descriptionEnabled = document.getElementById('inp-education-description')?.checked;
+                const semester = document.getElementById('inp-education-semester')?.value.trim();
+                if (descriptionEnabled && semester) {
+                    const description = document.createElement('div');
+                    description.className = 'education-description';
+                    description.textContent = `* - Upto ${semester} Semester`;
+                    chunks.push({ el: description, type: 'block' });
+                }
             }
         } 
         else if (sec.querySelector('#achievementsList')) {

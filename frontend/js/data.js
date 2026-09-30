@@ -26,6 +26,8 @@ function getResumeData() {
         profile_pic_path: AppState.profilePicBase64, 
         logo_path: AppState.logoBase64, 
         footer_text: document.getElementById('inp-footer').value,
+        education_description_enabled: document.getElementById('inp-education-description')?.checked || false,
+        education_description_semester: document.getElementById('inp-education-semester')?.value || '',
         skills_programming: document.getElementById('inp-skills-prog').value, 
         skills_engineering: document.getElementById('inp-skills-eng').value, 
         skills_other: document.getElementById('inp-skills-other').value,
@@ -111,6 +113,10 @@ function populateFormWithData(data, options = {}) {
         }
     });
     document.getElementById('inp-footer').value = data.footer_text !== undefined ? data.footer_text : `Department of Training and Placement, NIT Trichy 620015\nTelephone : +91-431-2501081    e-mail: tp@nitt.edu, tnp.nitt@gmail.com`;
+    const educationDescription = document.getElementById('inp-education-description');
+    const educationSemester = document.getElementById('inp-education-semester');
+    if (educationDescription) educationDescription.checked = Boolean(data.education_description_enabled);
+    if (educationSemester) educationSemester.value = data.education_description_semester || '';
     
     ['prog','eng','other'].forEach(k => {
         document.getElementById(`inp-skills-${k}`).value = data[`skills_${k === 'prog' ? 'programming' : k === 'eng' ? 'engineering' : 'other'}`] || '';
@@ -292,7 +298,7 @@ updatePreview();
 // ==========================================
 // 🗜️ IMAGE COMPRESSION UTILITY
 // ==========================================
-function compressImage(file, callback) {
+function compressImage(file, callback, backgroundColor = null) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     
@@ -322,6 +328,10 @@ function compressImage(file, callback) {
             canvas.height = height;
 
             // Draw and compress
+            if (backgroundColor) {
+                ctx.fillStyle = backgroundColor;
+                ctx.fillRect(0, 0, width, height);
+            }
             ctx.drawImage(img, 0, 0, width, height);
             
             // Export as JPEG at 70% quality (massively reduces file size)

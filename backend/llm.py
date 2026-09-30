@@ -14,6 +14,7 @@ DEFAULT_SUMMARY_WORD_COUNT = int(os.getenv("AI_SUMMARY_DEFAULT_WORDS", "60"))
 DEFAULT_REWRITE_MAX_TOKENS = 2048
 DEFAULT_REVIEW_MAX_TOKENS = 3072
 MAX_RETRIES = 2
+MIN_ADAPTIVE_MAX_TOKENS = 256
 logger = logging.getLogger(__name__)
 
 FORMAT_AND_SCOPE_SUFFIX = (
@@ -193,22 +194,50 @@ def extract_response_text(response_json: Dict[str, Any]) -> tuple[str, Optional[
     return content, choice.get("finish_reason")
 
 
+def get_provider_error(response: httpx.Response) -> str:
+    try:
+        response_json = response.json()
+    except ValueError:
+        return response.text[:300]
+
+    error = response_json.get("error", response_json) if isinstance(response_json, dict) else {}
+    if isinstance(error, dict):
+        return str(error.get("message") or error.get("code") or response.text[:300])
+    return str(error)[:300]
+
+
+def is_token_limit_error(error_message: str) -> bool:
+    normalized = error_message.lower()
+    return any(
+        phrase in normalized
+        for phrase in (
+            "max_tokens",
+            "max completion tokens",
+            "context length",
+            "context window",
+            "token limit",
+            "too many tokens",
+        )
+    )
+
+
 async def call_groq(messages: list[Dict[str, str]], max_tokens: int, error_label: str) -> tuple[str, Optional[str]]:
-    payload = {
-        "model": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL),
-        "messages": messages,
-        "temperature": get_float_setting("GROQ_TEMPERATURE", 0.2, 0.0, 2.0),
-        "max_tokens": max_tokens,
-    }
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json",
     }
 
     last_error = None
+    request_max_tokens = max_tokens
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0)) as client:
         for attempt in range(MAX_RETRIES + 1):
             try:
+                payload = {
+                    "model": os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL),
+                    "messages": messages,
+                    "temperature": get_float_setting("GROQ_TEMPERATURE", 0.2, 0.0, 2.0),
+                    "max_tokens": request_max_tokens,
+                }
                 response = await client.post(GROQ_API_URL, headers=headers, json=payload)
                 if response.is_success:
                     logger.info("groq_request_succeeded operation=%s attempt=%s", error_label, attempt + 1)
@@ -220,11 +249,25 @@ async def call_groq(messages: list[Dict[str, str]], max_tokens: int, error_label
                             detail="Groq returned an invalid JSON response.",
                         ) from exc
                     return extract_response_text(response_json)
+                provider_error = get_provider_error(response)
+                if (
+                    is_token_limit_error(provider_error)
+                    and request_max_tokens > MIN_ADAPTIVE_MAX_TOKENS
+                    and attempt < MAX_RETRIES
+                ):
+                    request_max_tokens = max(MIN_ADAPTIVE_MAX_TOKENS, request_max_tokens // 2)
+                    last_error = provider_error
+                    logger.warning(
+                        "groq_request_retry operation=%s attempt=%s reason=token_limit max_tokens=%s",
+                        error_label, attempt + 1, request_max_tokens,
+                    )
+                    continue
                 if response.status_code < 500 and response.status_code != 429:
                     logger.error(
-                        "groq_request_failed operation=%s attempt=%s status=%s retryable=false",
-                        error_label, attempt + 1, response.status_code,
+                        "groq_request_failed operation=%s attempt=%s status=%s error=%s retryable=false",
+                        error_label, attempt + 1, response.status_code, provider_error,
                     )
+                    last_error = f"status {response.status_code}: {provider_error}"
                     break
                 last_error = f"status {response.status_code}"
                 logger.warning(

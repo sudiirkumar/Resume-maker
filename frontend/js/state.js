@@ -282,10 +282,11 @@ function handleImageUpload(inputId, stateKey) {
         
         if (file) {
             // Pass the file to our new compressor instead of reading it directly
+            const backgroundColor = stateKey === 'profilePicBase64' ? '#ffffff' : null;
             compressImage(file, function(compressedData) {
                 AppState[stateKey] = compressedData; 
                 if (typeof updatePreview === 'function') updatePreview(); 
-            });
+            }, backgroundColor);
         }
     });
 }
